@@ -13,9 +13,9 @@ export default function App() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900">
       <div className="bg-white rounded-3xl shadow-lg w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">CRM Backend</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Welcome</h1>
           <p className="text-gray-500 mt-2 text-sm">
-            Sign in to access your dashboard
+            Please login to continue
           </p>
         </div>
 

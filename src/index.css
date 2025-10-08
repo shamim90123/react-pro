@@ -1,16 +1,7 @@
 @import "tailwindcss";
 
-/* Keep globals minimal so Tailwind utilities drive layout & color */
 html, body, #root { height: 100%; }
-body { margin: 0; background: #f8fafc; color: #111827; } /* text-gray-900 */
+body { margin: 0; background: #f8fafc; color: #111827; }
 
-/* (optional) links that match your Tailwind palette a bit better */
-a { color: #282560; text-decoration: none; } /* blue-600 */
+a { color: #282560; text-decoration: none; }
 a:hover { text-decoration: underline; }
-
-/* Remove ALL the old template blocks:
-   - :root color/background/color-scheme
-   - body display:flex / place-items
-   - button resets (they override Tailwind)
-   - the light/dark @media block
-*/
