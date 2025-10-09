@@ -46,10 +46,11 @@ export default function LeadList() {
           />
           <button
             onClick={() => navigate("/leads/new")}
-            className="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+            className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg"
           >
             + Add Lead
           </button>
+
         </div>
       </div>
 
