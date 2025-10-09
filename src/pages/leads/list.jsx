@@ -1,40 +1,25 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Pagination from "../../components/Pagination";
+import { useLeadsStore } from "../../store/leads";
 
 export default function LeadList() {
-  // Mock data
-  const statuses = ["New", "Contacted", "Qualified", "Won", "Lost"];
-  const allLeads = useMemo(
-    () =>
-      Array.from({ length: 42 }, (_, i) => {
-        const id = i + 1;
-        return {
-          id,
-          name: `Lead ${id}`,
-          email: `lead${id}@example.com`,
-          status: statuses[id % statuses.length],
-          date: `2025-10-${String((id % 28) + 1).padStart(2, "0")}`,
-        };
-      }),
-    []
-  );
+  const navigate = useNavigate();
+  const leads = useLeadsStore((s) => s.leads);
 
-  // State
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Derived
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return allLeads;
-    return allLeads.filter(
+    return leads.filter(
       (l) =>
         l.name.toLowerCase().includes(q) ||
         l.email.toLowerCase().includes(q) ||
         l.status.toLowerCase().includes(q)
     );
-  }, [allLeads, query]);
+  }, [leads, query]);
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -48,26 +33,28 @@ export default function LeadList() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-2xl font-semibold text-gray-800">Lead List</h1>
-
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <input
             type="text"
+            placeholder="Search leads..."
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
               setPage(1);
             }}
-            placeholder="Search by name, email, or status…"
-            className="w-full sm:w-72 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full sm:w-72 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
-          <button className="px-4 py-2 text-sm font-medium text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg transition-colors">
+          <button
+            onClick={() => navigate("/leads/new")}
+            className="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg"
+          >
             + Add Lead
           </button>
         </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto rounded-lg border border-gray-200 shadow-sm bg-white">
+      <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
         <table className="min-w-full text-sm text-left text-gray-700">
           <thead className="bg-gray-100 text-xs uppercase font-semibold text-gray-600">
             <tr>
@@ -79,21 +66,13 @@ export default function LeadList() {
             </tr>
           </thead>
           <tbody>
-            {rows.length === 0 ? (
-              <tr>
-                <td className="px-6 py-6 text-gray-500" colSpan={5}>
-                  No results found.
-                </td>
-              </tr>
-            ) : (
+            {rows.length ? (
               rows.map((lead) => (
                 <tr
                   key={lead.id}
-                  className="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                  className="bg-white border-b border-gray-100 hover:bg-gray-50"
                 >
-                  <td className="px-6 py-3 font-medium text-gray-900 whitespace-nowrap">
-                    {lead.name}
-                  </td>
+                  <td className="px-6 py-3 font-medium text-gray-900">{lead.name}</td>
                   <td className="px-6 py-3">{lead.email}</td>
                   <td className="px-6 py-3">
                     <span
@@ -114,7 +93,10 @@ export default function LeadList() {
                   </td>
                   <td className="px-6 py-3">{lead.date}</td>
                   <td className="px-6 py-3 text-right">
-                    <button className="text-blue-600 hover:underline text-sm mr-3">
+                    <button
+                      className="text-blue-600 hover:underline text-sm mr-3"
+                      onClick={() => {/* navigate(`/leads/${lead.id}/edit`) */}}
+                    >
                       View
                     </button>
                     <button className="text-red-600 hover:underline text-sm">
@@ -123,24 +105,22 @@ export default function LeadList() {
                   </td>
                 </tr>
               ))
+            ) : (
+              <tr>
+                <td className="px-6 py-6 text-center text-gray-500" colSpan={5}>
+                  No leads found.
+                </td>
+              </tr>
             )}
           </tbody>
         </table>
 
-        {/* Reusable Pagination */}
         <Pagination
           page={current}
           pageSize={pageSize}
           total={total}
           onPageChange={setPage}
-          onPageSizeChange={(n) => {
-            setPageSize(n);
-            setPage(1);
-          }}
-          pageSizeOptions={[10, 20, 50]}
-          showRange
-          showFirstLast
-          className=""
+          onPageSizeChange={setPageSize}
         />
       </div>
     </div>
