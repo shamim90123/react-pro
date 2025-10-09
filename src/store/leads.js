@@ -4,7 +4,7 @@ import { create } from "zustand";
 const STATUSES = ["New", "Contacted", "Qualified", "Won", "Lost"];
 
 export const useLeadsStore = create((set) => ({
-  leads: Array.from({ length: 8 }, (_, i) => ({
+  leads: Array.from({ length: 100 }, (_, i) => ({
     id: i + 1,
     name: `Lead ${i + 1}`,
     email: `lead${i + 1}@example.com`,
