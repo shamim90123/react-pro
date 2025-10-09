@@ -3,8 +3,9 @@ import { NavLink } from "react-router-dom";
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: "🏠" },
   { to: "/lead-list", label: "Leads", icon: "📇" },
-  { to: "/dashboard/campaigns", label: "Campaigns", icon: "✉️" },
-  { to: "/dashboard/settings", label: "Settings", icon: "⚙️" },
+  { to: "/user-list", label: "Users", icon: "📇" },
+  // { to: "/dashboard/campaigns", label: "Campaigns", icon: "✉️" },
+  // { to: "/dashboard/settings", label: "Settings", icon: "⚙️" },
 ];
 
 export default function Sidebar({ open, onClose }) {
