@@ -4,7 +4,7 @@ import { useUsersStore } from "../../store/users";
 
 const STATUSES = ["New", "Contacted", "Qualified", "Won", "Lost"];
 
-export default function LeadFormPage() {
+export default function UserFormPage() {
   const navigate = useNavigate();
   const addUser = useUsersStore((s) => s.addUser);
 
@@ -21,7 +21,7 @@ export default function LeadFormPage() {
 
   const validate = () => {
     const e = {};
-    if (!form.name.trim()) e.name = "Lead name is required.";
+    if (!form.name.trim()) e.name = "User name is required.";
     if (!form.email.trim()) e.email = "Email is required.";
     else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Enter a valid email.";
     setErrors(e);
@@ -55,7 +55,7 @@ export default function LeadFormPage() {
 
           <section className="mb-8">
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {/* Lead Name */}
+              {/* User Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   User Name
