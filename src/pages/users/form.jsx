@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useLeadsStore } from "../../store/leads";
+import { useUsersStore } from "../../store/users";
 
 const STATUSES = ["New", "Contacted", "Qualified", "Won", "Lost"];
 
 export default function LeadFormPage() {
   const navigate = useNavigate();
-  const addLead = useLeadsStore((s) => s.addLead);
+  const addUser = useUsersStore((s) => s.addUser);
 
   const [form, setForm] = useState({
     name: "",
@@ -31,15 +31,15 @@ export default function LeadFormPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    addLead(form);
-    navigate("/leads");
+    addUser(form);
+    navigate("/user-list");
   };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Header */}
       <header className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-800">Create New Lead</h1>
+        <h1 className="text-xl font-semibold text-gray-800">Create New User</h1>
         <button
           onClick={() => navigate(-1)}
           className="px-3 py-1.5 text-sm text-white rounded-lg"
@@ -58,7 +58,7 @@ export default function LeadFormPage() {
               {/* Lead Name */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Lead Name
+                  User Name
                 </label>
                 <input
                   value={form.name}
@@ -138,7 +138,7 @@ export default function LeadFormPage() {
               onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#1e1b4a")}
               onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#282560")}
             >
-              Save Lead
+              Save User
             </button>
           </div>
         </form>

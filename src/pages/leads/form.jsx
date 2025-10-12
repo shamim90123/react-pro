@@ -32,7 +32,7 @@ export default function LeadFormPage() {
     e.preventDefault();
     if (!validate()) return;
     addLead(form);
-    navigate("/leads");
+    navigate("/lead-list");
   };
 
   return (

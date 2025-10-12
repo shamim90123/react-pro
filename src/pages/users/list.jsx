@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../../components/Pagination";
-import { useLeadsStore } from "../../store/users";
+import { useUsersStore } from "../../store/users";
 
 export default function LeadList() {
   const navigate = useNavigate();
-  const leads = useLeadsStore((s) => s.leads);
+  const leads = useUsersStore((s) => s.users);
 
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -59,7 +59,7 @@ export default function LeadList() {
         <table className="min-w-full text-sm text-left text-gray-700">
           <thead className="bg-gray-100 text-xs uppercase font-semibold text-gray-600">
             <tr>
-              <th className="px-6 py-3">Lead Name</th>
+              <th className="px-6 py-3">User Name</th>
               <th className="px-6 py-3">Email</th>
               <th className="px-6 py-3">Status</th>
               <th className="px-6 py-3">Created At</th>
