@@ -10,7 +10,7 @@ export default function Login() {
   const location = useLocation();
   const { login } = useAuth();
 
-  const [form, setForm] = useState({ email: "", password: "", remember: false });
+  const [form, setForm] = useState({ email: "admin@gmail.com", password: "12345678", remember: false });
   const [showPwd, setShowPwd] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -111,10 +111,10 @@ export default function Login() {
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        {/* <p className="text-center text-sm text-gray-500 mt-6">
           Don’t have an account?{" "}
           <a href="/register" className="hover:underline font-medium">Sign up</a>
-        </p>
+        </p> */}
       </div>
     </div>
   );
