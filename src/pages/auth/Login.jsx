@@ -3,15 +3,16 @@ import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api from "@/lib/api";
 import { useAuth } from "@/context/AuthContext";
+import { SweetAlert } from "@/components/ui/SweetAlert";
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { login, setLoading, loading } = useAuth();
+  const { login } = useAuth();
 
   const [form, setForm] = useState({ email: "", password: "", remember: false });
   const [showPwd, setShowPwd] = useState(false);
-  const [error, setError] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -20,35 +21,26 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    setLoading(true);
+    setSubmitting(true);
     try {
-      // If using Sanctum session auth, you may need:
-      // await api.get("/sanctum/csrf-cookie");
-
       const { data } = await api.post("/api/v1/login", {
         email: form.email,
         password: form.password,
       });
 
-      // Map the token shape from your API:
-      const accessToken =
-        data?.access_token || data?.token || data?.data?.token; // adjust if needed
-
+      const accessToken = data?.access_token || data?.token || data?.data?.token;
       if (!accessToken) throw new Error("No token returned from API.");
 
-      // Optionally fetch the current user
-      // const me = (await api.get("/api/v1/me", { headers: { Authorization: `Bearer ${accessToken}` } })).data;
+      await login({ token: accessToken, remember: form.remember });
 
-      await login({ token: accessToken, remember: form.remember /*, me*/ });
-
-      // Redirect to intended page or dashboard
+      SweetAlert.success("Signed in successfully");
       const to = location.state?.from?.pathname || "/dashboard";
       navigate(to, { replace: true });
     } catch (err) {
-      setError(err?.response?.data?.message || err.message || "Login failed");
+      const message = err?.response?.data?.message || err.message || "Login failed";
+      SweetAlert.error(message);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -59,12 +51,6 @@ export default function Login() {
           <img src="img/logo.png" alt="Logo" className="mx-auto h-16 w-auto mb-2" />
           <p className="text-gray-500 mt-2 text-sm">Please login to continue</p>
         </div>
-
-        {error && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
@@ -96,7 +82,6 @@ export default function Login() {
                 type="button"
                 onClick={() => setShowPwd((s) => !s)}
                 className="absolute inset-y-0 right-2 my-auto text-xs text-gray-600 hover:text-gray-800"
-                aria-label={showPwd ? "Hide password" : "Show password"}
               >
                 {showPwd ? "Hide" : "Show"}
               </button>
@@ -114,26 +99,21 @@ export default function Login() {
               />
               Remember me
             </label>
-
-            <a href="/forgot-password" className="text-sm hover:underline">
-              Forgot password?
-            </a>
+            <a href="/forgot-password" className="text-sm hover:underline">Forgot password?</a>
           </div>
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={submitting}
             className="w-full py-2.5 bg-[#282560] hover:bg-[#1f1c4d] disabled:opacity-60 text-white rounded-xl text-sm font-medium shadow-sm transition"
           >
-            {loading ? "Signing in…" : "Sign in"}
+            {submitting ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
           Don’t have an account?{" "}
-          <a href="/register" className="hover:underline font-medium">
-            Sign up
-          </a>
+          <a href="/register" className="hover:underline font-medium">Sign up</a>
         </p>
       </div>
     </div>

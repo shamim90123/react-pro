@@ -1,148 +1,173 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { useUsersStore } from "../../store/users";
+// src/pages/users/form.jsx
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { UsersApi } from "@/lib/users";
+import { SweetAlert } from "@/components/ui/SweetAlert";
 
-const STATUSES = ["New", "Contacted", "Qualified", "Won", "Lost"];
+const ROLES = [
+  { label: "Admin", value: "admin" },
+  { label: "Manager", value: "manager" },
+  { label: "Staff", value: "staff" },
+  { label: "Viewer", value: "viewer" },
+];
 
 export default function UserFormPage() {
   const navigate = useNavigate();
-  const addUser = useUsersStore((s) => s.addUser);
+  const { id } = useParams();
+  const isEdit = useMemo(() => Boolean(id), [id]);
 
   const [form, setForm] = useState({
     name: "",
     email: "",
-    status: "New",
-    date: new Date().toISOString().slice(0, 10),
-    notes: "",
+    password: "",
+    role: "staff",
   });
-  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(isEdit);
+  const [saving, setSaving] = useState(false);
 
-  const update = (k, v) => setForm((s) => ({ ...s, [k]: v }));
+  useEffect(() => {
+    if (!isEdit) return;
+    (async () => {
+      try {
+        const data = await UsersApi.get(id);
+        setForm({
+          name: data?.name ?? "",
+          email: data?.email ?? "",
+          password: "", // keep empty for edit
+          role: data?.role ?? "staff",
+        });
+      } catch (e) {
+        SweetAlert.error(e?.message || "Failed to load user");
+        navigate("/user-list", { replace: true });
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [id, isEdit, navigate]);
 
-  const validate = () => {
-    const e = {};
-    if (!form.name.trim()) e.name = "User name is required.";
-    if (!form.email.trim()) e.email = "Email is required.";
-    else if (!/^\S+@\S+\.\S+$/.test(form.email)) e.email = "Enter a valid email.";
-    setErrors(e);
-    return Object.keys(e).length === 0;
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((s) => ({ ...s, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
-    addUser(form);
-    navigate("/user-list");
+    // simple client validation
+    if (!form.name?.trim()) return SweetAlert.error("Name is required");
+    if (!form.email?.trim()) return SweetAlert.error("Email is required");
+    if (!isEdit && !form.password) return SweetAlert.error("Password is required");
+
+    setSaving(true);
+    try {
+      if (isEdit) {
+        const payload = { name: form.name, email: form.email, role: form.role };
+        if (form.password) payload.password = form.password; // only if changed
+        await UsersApi.update(id, payload);
+        SweetAlert.success("User updated");
+      } else {
+        await UsersApi.create(form);
+        SweetAlert.success("User created");
+      }
+      navigate("/user-list", { replace: true });
+    } catch (e) {
+      SweetAlert.error(e?.data?.message || e?.message || "Save failed");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="p-6">Loading user…</div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between bg-white border-b border-gray-200 px-6 py-4">
-        <h1 className="text-xl font-semibold text-gray-800">Create New User</h1>
-        <button
-          onClick={() => navigate(-1)}
-          className="px-3 py-1.5 text-sm text-white rounded-lg"
-          style={{ backgroundColor: "#282560" }}
-        >
-          Back
-        </button>
-      </header>
+    <div className="max-w-3xl mx-auto p-4 md:p-6">
+      <div className="mb-6">
+        <h1 className="text-xl font-semibold text-gray-900">
+          {isEdit ? "Edit User" : "Create New User"}
+        </h1>
+        <p className="text-sm text-gray-500">Fill in the user details below.</p>
+      </div>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto bg-white px-8 py-10">
-        <form onSubmit={handleSubmit} className="w-full">
-
-          <section className="mb-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {/* User Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  User Name
-                </label>
-                <input
-                  value={form.name}
-                  onChange={(e) => update("name", e.target.value)}
-                  placeholder="e.g., John Doe"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-                {errors.name && (
-                  <p className="text-xs text-red-600 mt-1">{errors.name}</p>
-                )}
-              </div>
-
-              {/* Email */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => update("email", e.target.value)}
-                  placeholder="example@email.com"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                />
-                {errors.email && (
-                  <p className="text-xs text-red-600 mt-1">{errors.email}</p>
-                )}
-              </div>
-
-              {/* Status */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  value={form.status}
-                  onChange={(e) => update("status", e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                >
-                  {STATUSES.map((s) => (
-                    <option key={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-             
-            </div>
-          </section>
-
-          {/* Section: Notes */}
-          <section className="mb-8">
-            <h2 className="text-sm font-semibold text-gray-600 mb-4">Notes</h2>
-            <textarea
-              rows={8}
-              value={form.notes}
-              onChange={(e) => update("notes", e.target.value)}
-              placeholder="Add internal notes or background info..."
-              className="w-full min-h-[10rem] px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+      <form onSubmit={handleSubmit} className="space-y-5 bg-white p-6 rounded-2xl border border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+            <input
+              name="name"
+              value={form.name}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-xl focus:ring-1 focus:ring-[#282560] focus:border-[#282560]"
+              placeholder="Full name"
+              required
             />
-          </section>
-
-          {/* Actions BELOW the fields (right-aligned) */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-             <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="px-4 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 text-sm text-white rounded-lg"
-              style={{
-                backgroundColor: "#282560",
-                transition: "background-color 0.2s",
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#1e1b4a")}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#282560")}
-            >
-              Save User
-            </button>
           </div>
-        </form>
-      </main>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <input
+              name="email"
+              type="email"
+              value={form.email}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-xl focus:ring-1 focus:ring-[#282560] focus:border-[#282560]"
+              placeholder="Email address"
+              required
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Password {isEdit && <span className="text-gray-400">(leave blank to keep)</span>}
+            </label>
+            <input
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-xl focus:ring-1 focus:ring-[#282560] focus:border-[#282560]"
+              placeholder={isEdit ? "New password (optional)" : "Password"}
+              {...(isEdit ? {} : { required: true })}
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+            <select
+              name="role"
+              value={form.role}
+              onChange={handleChange}
+              className="w-full px-3 py-2 border rounded-xl bg-white focus:ring-1 focus:ring-[#282560] focus:border-[#282560]"
+            >
+              {ROLES.map((r) => (
+                <option key={r.value} value={r.value}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* actions bottom-right */}
+        <div className="pt-4 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={() => navigate("/user-list")}
+            className="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="px-4 py-2 rounded-xl text-white bg-[#282560] hover:bg-[#1f1c4d] disabled:opacity-60"
+          >
+            {saving ? "Saving…" : isEdit ? "Update User" : "Create User"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

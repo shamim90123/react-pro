@@ -1,15 +1,16 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
-export default function Header({ onToggleSidebar, onLogout }) {
+export default function Header({ onToggleSidebar }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef(null);
   const btnRef = useRef(null);
   const navigate = useNavigate();
+  const { logout } = useAuth(); // ✅ use the logout from context
 
-  // Close on outside click
   useEffect(() => {
-    const onDocClick = (e) => {
+    const handleClickOutside = (e) => {
       if (!open) return;
       if (
         menuRef.current &&
@@ -20,20 +21,18 @@ export default function Header({ onToggleSidebar, onLogout }) {
         setOpen(false);
       }
     };
-    const onEsc = (e) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("mousedown", onDocClick);
-    document.addEventListener("keydown", onEsc);
+    const handleEsc = (e) => e.key === "Escape" && setOpen(false);
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEsc);
     return () => {
-      document.removeEventListener("mousedown", onDocClick);
-      document.removeEventListener("keydown", onEsc);
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEsc);
     };
   }, [open]);
 
   const handleLogout = () => {
-    // optional external handler
-    if (typeof onLogout === "function") onLogout();
-    // default: navigate to login
-    navigate("/");
+    logout(); // ✅ clear token + context
+    navigate("/login", { replace: true }); // ✅ redirect to login
   };
 
   return (
@@ -49,13 +48,11 @@ export default function Header({ onToggleSidebar, onLogout }) {
           </svg>
         </button>
 
-        {/* Logo */}
         <Link to="/dashboard" className="flex items-center">
           <img src="/img/logo.png" alt="CRM Backend" className="h-7 w-auto" />
           <span className="sr-only">CRM Backend</span>
         </Link>
 
-        {/* Avatar + Menu */}
         <div className="relative">
           <button
             ref={btnRef}
@@ -64,11 +61,10 @@ export default function Header({ onToggleSidebar, onLogout }) {
             aria-haspopup="menu"
             aria-expanded={open}
             aria-controls="user-menu"
-            style={{ outlineOffset: "2px" }}
           >
             <img
               src="https://i.pravatar.cc/40?img=1"
-              alt="User menu"
+              alt="User avatar"
               className="h-8 w-8 rounded-full"
             />
             <svg
@@ -111,7 +107,6 @@ export default function Header({ onToggleSidebar, onLogout }) {
                   role="menuitem"
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-sm text-white rounded-b-xl"
-                  // brand color #282560
                   style={{ backgroundColor: "#282560" }}
                 >
                   Logout

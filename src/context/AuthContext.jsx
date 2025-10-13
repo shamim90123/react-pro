@@ -1,34 +1,37 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { tokenStore } from "@/lib/token";
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
 
-const STORAGE_KEY = "crm_auth_token";
-
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => {
-    return localStorage.getItem(STORAGE_KEY) || sessionStorage.getItem(STORAGE_KEY) || null;
-  });
+  const [token, setToken] = useState("");
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [hydrating, setHydrating] = useState(true); // ⬅️ only for initial hydrate
 
-  const login = async ({ token, remember, me }) => {
-    // store token based on remember
-    (remember ? localStorage : sessionStorage).setItem(STORAGE_KEY, token);
-    if (!remember) localStorage.removeItem(STORAGE_KEY);
-    setToken(token);
-    setUser(me ?? null);
+  useEffect(() => {
+    const saved = tokenStore.get();
+    if (saved) setToken(saved);
+    setHydrating(false);
+  }, []);
+
+  const login = async ({ token: newToken, remember = false, me = null }) => {
+    tokenStore.set(newToken, remember);
+    setToken(newToken);
+    setUser(me);
   };
 
   const logout = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    sessionStorage.removeItem(STORAGE_KEY);
-    setToken(null);
+    tokenStore.clear();
+    setToken("");
     setUser(null);
   };
 
-  const value = useMemo(() => ({ token, user, setUser, login, logout, loading, setLoading }), [token, user, loading]);
+  const value = useMemo(
+    () => ({ token, user, login, logout, hydrating }),
+    [token, user, hydrating]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
