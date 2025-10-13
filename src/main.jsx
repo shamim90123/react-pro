@@ -1,4 +1,4 @@
-// src/index.jsx
+// src/main.jsx
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";

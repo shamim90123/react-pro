@@ -4,7 +4,7 @@ import { tokenStore } from "./token";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE || "http://localhost:8000",
-  withCredentials: true,
+  withCredentials: false,
   headers: { "Content-Type": "application/json" },
 });
 
@@ -21,22 +21,19 @@ api.interceptors.request.use((config) => {
 
 // Response: unwrap data and normalise errors
 api.interceptors.response.use(
-  (res) => res, // keep full response (sometimes you need headers, pagination)
-  async (error) => {
-    const status = error?.response?.status;
+  (res) => res,
+  (err) => {
+    const status = err?.response?.status ?? 0;
+    const data = err?.response?.data;
     const message =
-      error?.response?.data?.message ||
-      error?.message ||
-      `HTTP ${status || "Error"}`;
-
-    // Optional: auto-logout on 401
-    // if (status === 401) {
-    //   tokenStore.clear();
-    //   window.location.href = "/login";
-    // }
-
-    return Promise.reject(new Error(message));
+      data?.message || err?.message || `HTTP ${status || "Error"}`;
+    const e = new Error(message);
+    e.status = status;
+    e.data = data;
+    e.original = err;
+    return Promise.reject(e);
   }
 );
+
 
 export default api;
