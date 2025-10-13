@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LeadsApi } from "../../lib/api";
+import { LeadsApi } from "@/lib/leads";
 
 export default function LeadFormPage() {
   const navigate = useNavigate();

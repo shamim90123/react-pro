@@ -1,87 +1,46 @@
-import { useNavigate } from "react-router-dom";
+// src/App.jsx
+import { Routes, Route, Navigate, Outlet, useLocation } from "react-router-dom";
+import ProtectedRoute from "@/router/ProtectedRoute";
+import Login from "@/pages/auth/Login";
+import DashboardLayout from "./layouts/DashboardLayout.jsx";
+import Dashboard from "./Dashboard.jsx";
+import LeadList from "./pages/leads/list.jsx";
+import LeadFormPage from "./pages/leads/form.jsx";
+import UserList from "./pages/users/list.jsx";
+import UserFormPage from "./pages/users/form.jsx";
+
+function getToken() {
+  return localStorage.getItem("auth_token") || sessionStorage.getItem("auth_token") || "";
+}
+
+// ⬇️ Inline guard so you can continue
+function PublicOnlyRoute() {
+  const token = getToken();
+  return token ? <Navigate to="/dashboard" replace /> : <Outlet />;
+}
 
 export default function App() {
-  const navigate = useNavigate();
-
-  const handleLogin = (e) => {
-    e.preventDefault();
-    // In a real app you'd validate credentials here
-    navigate("/dashboard");
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900">
-      <div className="bg-[#F9F7F1] rounded-3xl shadow-lg w-full max-w-md p-8">
-        <div className="text-center mb-8">
-          {/* Replace Welcome text with logo image */}
-          <img
-            src="img/logo.png"
-            alt="Logo"
-            className="mx-auto h-16 w-auto mb-2"
-          />
-          <p className="text-gray-500 mt-2 text-sm">
-            Please login to continue
-          </p>
-        </div>
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
 
-        <form onSubmit={handleLogin} className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              type="email"
-              placeholder="Email Address"
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl 
-                focus:outline-none focus:ring-1 focus:ring-[#282560] 
-                focus:border-[#282560] bg-white text-gray-900 placeholder-gray-400"
-            />
-          </div>
+      <Route element={<PublicOnlyRoute />}>
+        <Route path="/login" element={<Login />} />
+      </Route>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              placeholder="Password"
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl 
-                focus:outline-none focus:ring-1 focus:ring-[#282560] 
-                focus:border-[#282560] bg-white text-gray-900 placeholder-gray-400"
-            />
-          </div>
+      <Route element={<ProtectedRoute />}>
+        <Route element={<DashboardLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/lead-list" element={<LeadList />} />
+          <Route path="/leads/new" element={<LeadFormPage />} />
+          <Route path="/leads/:id/edit" element={<LeadFormPage />} />
+          <Route path="/user-list" element={<UserList />} />
+          <Route path="/user/new" element={<UserFormPage />} />
+          <Route path="/user/:id/edit" element={<UserFormPage />} />
+        </Route>
+      </Route>
 
-          <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 text-sm text-gray-600">
-              <input
-                type="checkbox"
-                className="h-4 w-4 border-gray-300 rounded focus:ring-blue-500"
-              />
-              Remember me
-            </label>
-
-            <a href="#" className="text-sm hover:underline">
-              Forgot password?
-            </a>
-          </div>
-
-          <button
-            type="submit"
-            className="w-full py-2.5 bg-[#282560] hover:bg-[#1f1c4d] text-white rounded-xl text-sm font-medium shadow-sm transition"
-          >
-            Sign in
-          </button>
-        </form>
-
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Don’t have an account?{" "}
-          <a href="#" className="hover:underline font-medium">
-            Sign up
-          </a>
-        </p>
-      </div>
-    </div>
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../../components/Pagination";
-import { LeadsApi } from "../../lib/api";
+import { LeadsApi } from "@/lib/leads";
 
 const productLabels = {
   sams_pay: "SAMS Pay",
