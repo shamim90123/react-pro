@@ -34,7 +34,7 @@ export default function UserFormPage() {
           name: data?.name ?? "",
           email: data?.email ?? "",
           password: "", // keep empty for edit
-          role: data?.role ?? "staff",
+          role: data?.roles[0] ?? "staff",
         });
       } catch (e) {
         SweetAlert.error(e?.message || "Failed to load user");
