@@ -1,32 +1,105 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../../components/Pagination";
-import { useLeadsStore } from "../../store/leads";
+import { LeadsApi } from "../../lib/api";
+
+const productLabels = {
+  sams_pay: "SAMS Pay",
+  sams_manage: "SAMS Manage",
+  sams_platform: "SAMS Platform",
+  sams_pay_client_management: "SAMS Pay CM",
+};
 
 export default function LeadList() {
   const navigate = useNavigate();
-  const leads = useLeadsStore((s) => s.leads);
 
+  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState([]); // api data
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return leads.filter(
-      (l) =>
-        l.name.toLowerCase().includes(q) ||
-        l.email.toLowerCase().includes(q) ||
-        l.status.toLowerCase().includes(q)
-    );
-  }, [leads, query]);
+  // Fetched meta (Laravel pagination)
+  const [total, setTotal] = useState(0);
 
-  const total = filtered.length;
+  const fetchList = async ({ p = page, ps = pageSize, q = query } = {}) => {
+    try {
+      setLoading(true);
+      const res = await LeadsApi.list({ page: p, perPage: ps, q });
+      // Laravel resource pagination typically returns:
+      // { data: [...], meta: { total, per_page, current_page, ... } }
+      const rows = res?.data ?? res?.data === 0 ? [] : (Array.isArray(res) ? res : []);
+      setItems(rows);
+      const meta = res?.meta || {};
+      setTotal(meta.total ?? rows.length);
+    } catch (err) {
+      alert(`Failed to load leads: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchList({ p: page, ps: pageSize, q: query });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize]);
+
+  const filtered = useMemo(() => {
+    // If backend already filters with ?q=, you can just return items.
+    const q = query.trim().toLowerCase();
+    if (!q) return items;
+    return items.filter((l) => {
+      const hay = [
+        l.name,
+        l.email,
+        l.phone,
+        l.city,
+        l.firstname,
+        l.lastname,
+        l.job_title,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+  }, [items, query]);
+
+  const handleSearch = () => {
+    setPage(1);
+    fetchList({ p: 1, ps: pageSize, q: query });
+  };
+
+  const deleteLead = async (id) => {
+    if (!confirm("Delete this lead?")) return;
+    try {
+      await LeadsApi.remove(id);
+      fetchList(); // refresh current page
+    } catch (err) {
+      alert(`Delete failed: ${err.message}`);
+    }
+  };
+
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const current = Math.min(page, totalPages);
-  const startIndex = (current - 1) * pageSize;
-  const endIndex = Math.min(startIndex + pageSize, total);
-  const rows = filtered.slice(startIndex, endIndex);
+  const rows = filtered; // already paginated by backend
+
+  const renderProducts = (lead) => {
+    const tags = Object.keys(productLabels).filter((k) => !!lead[k]);
+    if (!tags.length) return <span className="text-gray-400">—</span>;
+    return (
+      <div className="flex flex-wrap gap-1">
+        {tags.map((k) => (
+          <span
+            key={k}
+            className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-indigo-50 text-indigo-700"
+          >
+            {productLabels[k]}
+          </span>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -36,21 +109,24 @@ export default function LeadList() {
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <input
             type="text"
-            placeholder="Search leads..."
+            placeholder="Search by name, email, phone, city…"
             value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setPage(1);
-            }}
-            className="w-full sm:w-72 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            className="w-full sm:w-80 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
+          <button
+            onClick={handleSearch}
+            className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            Search
+          </button>
           <button
             onClick={() => navigate("/leads/new")}
             className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg"
           >
             + Add Lead
           </button>
-
         </div>
       </div>
 
@@ -61,46 +137,59 @@ export default function LeadList() {
             <tr>
               <th className="px-6 py-3">Lead Name</th>
               <th className="px-6 py-3">Email</th>
-              <th className="px-6 py-3">Status</th>
+              <th className="px-6 py-3">Phone</th>
+              <th className="px-6 py-3">City</th>
+              <th className="px-6 py-3">Products</th>
+              <th className="px-6 py-3">Booked Demo</th>
               <th className="px-6 py-3">Created At</th>
               <th className="px-6 py-3 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
-            {rows.length ? (
+            {loading ? (
+              <tr>
+                <td className="px-6 py-6 text-center text-gray-500" colSpan={8}>
+                  Loading…
+                </td>
+              </tr>
+            ) : rows?.length ? (
               rows.map((lead) => (
-                <tr
-                  key={lead.id}
-                  className="bg-white border-b border-gray-100 hover:bg-gray-50"
-                >
-                  <td className="px-6 py-3 font-medium text-gray-900">{lead.name}</td>
-                  <td className="px-6 py-3">{lead.email}</td>
-                  <td className="px-6 py-3">
-                    <span
-                      className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        lead.status === "New"
-                          ? "bg-blue-100 text-blue-800"
-                          : lead.status === "Contacted"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : lead.status === "Qualified"
-                          ? "bg-green-100 text-green-800"
-                          : lead.status === "Won"
-                          ? "bg-emerald-100 text-emerald-800"
-                          : "bg-red-100 text-red-700"
-                      }`}
-                    >
-                      {lead.status}
-                    </span>
+                <tr key={lead.id} className="bg-white border-b border-gray-100 hover:bg-gray-50">
+                  <td className="px-6 py-3 font-medium text-gray-900">
+                    <div className="flex flex-col">
+                      <span>{lead.name}</span>
+                      <span className="text-xs text-gray-500">
+                        {lead.firstname || lead.lastname
+                          ? `${lead.firstname ?? ""} ${lead.lastname ?? ""}`.trim()
+                          : lead.job_title || ""}
+                      </span>
+                    </div>
                   </td>
-                  <td className="px-6 py-3">{lead.date}</td>
+                  <td className="px-6 py-3">{lead.email}</td>
+                  <td className="px-6 py-3">{lead.phone || <span className="text-gray-400">—</span>}</td>
+                  <td className="px-6 py-3">{lead.city || <span className="text-gray-400">—</span>}</td>
+                  <td className="px-6 py-3">{renderProducts(lead)}</td>
+                  <td className="px-6 py-3">
+                    {lead.booked_demo ? (
+                      <span className="px-2 py-0.5 text-[11px] rounded-full bg-emerald-100 text-emerald-700">Yes</span>
+                    ) : (
+                      <span className="px-2 py-0.5 text-[11px] rounded-full bg-gray-100 text-gray-600">No</span>
+                    )}
+                  </td>
+                  <td className="px-6 py-3">
+                    {lead.created_at?.slice?.(0, 10) || <span className="text-gray-400">—</span>}
+                  </td>
                   <td className="px-6 py-3 text-right">
                     <button
                       className="text-blue-600 hover:underline text-sm mr-3"
-                      onClick={() => {/* navigate(`/leads/${lead.id}/edit`) */}}
+                      onClick={() => { /* navigate(`/leads/${lead.id}`) */ }}
                     >
                       View
                     </button>
-                    <button className="text-red-600 hover:underline text-sm">
+                    <button
+                      className="text-red-600 hover:underline text-sm"
+                      onClick={() => deleteLead(lead.id)}
+                    >
                       Delete
                     </button>
                   </td>
@@ -108,7 +197,7 @@ export default function LeadList() {
               ))
             ) : (
               <tr>
-                <td className="px-6 py-6 text-center text-gray-500" colSpan={5}>
+                <td className="px-6 py-6 text-center text-gray-500" colSpan={8}>
                   No leads found.
                 </td>
               </tr>
