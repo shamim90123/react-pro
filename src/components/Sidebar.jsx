@@ -4,6 +4,8 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: "🏠" },
   { to: "/lead-list", label: "Leads", icon: "📇" },
   { to: "/user-list", label: "Users", icon: "📇" },
+  // product setup menu 
+  { to: "/product-setup", label: "Product Setup", icon: "🛠️" },
   // { to: "/dashboard/campaigns", label: "Campaigns", icon: "✉️" },
   // { to: "/dashboard/settings", label: "Settings", icon: "⚙️" },
 ];

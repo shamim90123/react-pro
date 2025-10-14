@@ -9,6 +9,8 @@ import LeadList from "./pages/leads/list.jsx";
 import LeadFormPage from "./pages/leads/form.jsx";
 import UserList from "./pages/users/list.jsx";
 import UserFormPage from "./pages/users/form.jsx";
+import ProductList from "./pages/products/list.jsx";
+import ProductFormPage from "./pages/products/form.jsx";
 
 export default function App() {
   return (
@@ -28,6 +30,10 @@ export default function App() {
           <Route path="/user-list" element={<UserList />} />
           <Route path="/user/new" element={<UserFormPage />} />
           <Route path="/user/:id/edit" element={<UserFormPage />} />
+          {/* product setup route */}
+          <Route path="/product-setup" element={<ProductList />} />
+          <Route path="/product/new" element={<ProductFormPage />} />
+          <Route path="/product/:id/edit" element={<ProductFormPage />} />
         </Route>
       </Route>
 
