@@ -2,22 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ProductsApi } from "@/lib/lead_stages"; // Import Products API
+import { LeadStageApi } from "@/lib/lead_stages"; // Import Products API
 
 const ProductFormPage = () => {
-  const { id } = useParams(); // For editing a product
+  const { id } = useParams(); // For editing a lead stage
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", status: "active" });
 
   useEffect(() => {
     if (id) {
-      // Fetch the existing product data if we're editing
+      // Fetch the existing lead stage data if we're editing
       const fetchProduct = async () => {
         try {
-          const data = await ProductsApi.show(id); // Use ProductsApi to fetch product data
+          const data = await LeadStageApi.show(id); // Use LeadStageApi to fetch lead stage data
           setForm(data);
         } catch (error) {
-          console.error("Error fetching product data:", error);
+          console.error("Error fetching lead stage data:", error);
         }
       };
 
@@ -34,30 +34,29 @@ const ProductFormPage = () => {
     e.preventDefault();
 
     try {
-      const method = id ? "update" : "create";
       if (id) {
-        // For edit, update the product
-        await ProductsApi.update(id, form); 
+        // For edit, update the lead stage
+        await LeadStageApi.update(id, form); 
       } else {
-        // For add, create a new product
-        await ProductsApi.create(form); 
+        // For add, create a new lead stage
+        await LeadStageApi.create(form); 
       }
 
-      navigate("/lead-stages"); // Navigate back to the product list page
+      navigate("/lead-stages"); // Navigate back to the lead stage list page
     } catch (error) {
-      console.error("Error saving product:", error);
-      alert("Error saving product");
+      console.error("Error saving data:", error);
+      alert("Error saving lead stage data. Please try again.");
     }
   };
 
   return (
     <div className="container mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">{id ? "Edit" : "Add"} Product</h1>
+      <h1 className="text-2xl font-semibold mb-4">{id ? "Edit" : "Add"} Lead Stage</h1>
       <form onSubmit={handleSubmit}>
         <div className="flex mb-4 space-x-4">
-          {/* Product Name Field */}
+          {/* Lead Stage Name Field */}
           <div className="w-1/2">
-            <label className="block text-sm font-medium mb-2">Product Name</label>
+            <label className="block text-sm font-medium mb-2">Lead Stage Name</label>
             <input
               type="text"
               name="name"
@@ -88,7 +87,7 @@ const ProductFormPage = () => {
             type="submit"
             className="px-4 py-2 text-white bg-blue-500 rounded-lg"
           >
-            {id ? "Save Changes" : "Add Product"}
+            {id ? "Save Changes" : "Add Lead Stage"}
           </button>
         </div>
       </form>

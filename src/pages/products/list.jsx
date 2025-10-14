@@ -65,15 +65,6 @@ export default function ProductList() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-2xl font-semibold text-gray-800">Product List</h1>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <input
-            type="text"
-            placeholder="Search by product name..."
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-            }}
-            className="w-full sm:w-72 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#282560]"
-          />
           <button
             onClick={() => navigate("/product/new")}
             className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg"

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SweetAlert } from "@/components/ui/SweetAlert";
-import { ProductsApi } from "@/lib/lead_stages"; // Import Products API
+import { LeadStageApi } from "@/lib/lead_stages"; // Import lead stages API
 
-export default function ProductList() {
+export default function LeadStageList() {
   const navigate = useNavigate();
 
   // Table state
@@ -18,41 +18,41 @@ export default function ProductList() {
     return () => clearTimeout(timeout);
   }, [query]);
 
-  // Fetch products with search query
+  // Fetch lead stages with search query
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await ProductsApi.list({
+        const data = await LeadStageApi.list({
           q: debouncedQ || "",
         });
 
         const items = Array.isArray(data?.data) ? data.data : data || [];
         setRows(items);
       } catch (e) {
-        SweetAlert.error(e?.data?.message || e?.message || "Failed to load products");
+        SweetAlert.error(e?.data?.message || e?.message || "Failed to load lead stages");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, [debouncedQ]);
 
-  // Handle delete product
+  // Handle delete LeadStage
   const handleDelete = async (id) => {
     const res = await SweetAlert.confirm({
-      title: "Delete product?",
+      title: "Delete LeadStage?",
       text: "This action cannot be undone.",
       confirmButtonText: "Delete",
     });
     if (!res.isConfirmed) return;
 
     try {
-      await ProductsApi.remove(id);
-      SweetAlert.success("Product deleted");
-      // Reload the products list
-      const updatedRows = rows.filter((product) => product.id !== id);
+      await LeadStageApi.remove(id);
+      SweetAlert.success("LeadStage deleted");
+      // Reload the lead stages list
+      const updatedRows = rows.filter((LeadStage) => LeadStage.id !== id);
       setRows(updatedRows);
     } catch (e) {
       SweetAlert.error(e?.data?.message || e?.message || "Delete failed");
@@ -63,22 +63,14 @@ export default function ProductList() {
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-        <h1 className="text-2xl font-semibold text-gray-800">Product List</h1>
+        <h1 className="text-2xl font-semibold text-gray-800">LeadStage List</h1>
         <div className="flex items-center gap-3 w-full sm:w-auto">
-          <input
-            type="text"
-            placeholder="Search by product name..."
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-            }}
-            className="w-full sm:w-72 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#282560]"
-          />
+       
           <button
             onClick={() => navigate("/lead-stage/new")}
             className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg"
           >
-            + Add Product
+            + Add Lead Stage
           </button>
         </div>
       </div>
@@ -88,7 +80,7 @@ export default function ProductList() {
         <table className="min-w-full text-sm text-left text-gray-700">
           <thead className="bg-gray-100 text-xs uppercase font-semibold text-gray-600">
             <tr>
-              <th className="px-6 py-3">Product Name</th>
+              <th className="px-6 py-3">Name</th>
               <th className="px-6 py-3">Status</th>
               <th className="px-6 py-3 text-right">Actions</th>
             </tr>
@@ -97,24 +89,24 @@ export default function ProductList() {
             {loading ? (
               <tr>
                 <td className="px-6 py-6 text-center text-gray-500" colSpan={3}>
-                  Loading products…
+                  Loading Lead Stages…
                 </td>
               </tr>
             ) : rows?.length ? (
-              rows.map((product) => (
-                <tr key={product.id} className="bg-white border-b border-gray-100 hover:bg-gray-50">
-                  <td className="px-6 py-3 font-medium text-gray-900">{product.name}</td>
-                  <td className="px-6 py-3">{product.status}</td>
+              rows.map((LeadStage) => (
+                <tr key={LeadStage.id} className="bg-white border-b border-gray-100 hover:bg-gray-50">
+                  <td className="px-6 py-3 font-medium text-gray-900">{LeadStage.name}</td>
+                  <td className="px-6 py-3">{LeadStage.status}</td>
                   <td className="px-6 py-3 text-right">
                     <button
                       className="text-blue-600 hover:underline text-sm mr-3"
-                      onClick={() => navigate(`/product/${product.id}/edit`)}
+                      onClick={() => navigate(`/lead-stage/${LeadStage.id}/edit`)}
                     >
                       Edit
                     </button>
                     <button
                       className="text-red-600 hover:underline text-sm"
-                      onClick={() => handleDelete(product.id)}
+                      onClick={() => handleDelete(LeadStage.id)}
                     >
                       Delete
                     </button>
@@ -124,7 +116,7 @@ export default function ProductList() {
             ) : (
               <tr>
                 <td className="px-6 py-6 text-center text-gray-500" colSpan={3}>
-                  No products found.
+                  No lead stages found.
                 </td>
               </tr>
             )}

@@ -4,7 +4,7 @@ import api from "./api";  // This imports the correct axios instance with the ba
 
 const BASE = "/api/v1/lead_stages";  // This is the correct endpoint, which will be appended to the base URL in api.js
 
-export const ProductsApi = {
+export const LeadStageApi = {
   // Fetch all products with pagination and search query (if any)
   list: async ({ page = 1, perPage = 10, q = "" } = {}) => {
     const res = await api.get(BASE, { params: { page, per_page: perPage, ...(q ? { q } : {}) } });
