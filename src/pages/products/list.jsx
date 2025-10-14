@@ -1,8 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 import { ProductsApi } from "@/lib/products"; // Import Products API
-import Pagination from "@/components/Pagination"; // Import pagination component
 
 export default function ProductList() {
   const navigate = useNavigate();
@@ -11,9 +10,6 @@ export default function ProductList() {
   const [rows, setRows] = useState([]);
   const [query, setQuery] = useState(""); // Search query
   const [debouncedQ, setDebouncedQ] = useState(""); // Debounced search query
-  const [page, setPage] = useState(1); // Current page
-  const [pageSize, setPageSize] = useState(10); // Items per page
-  const [total, setTotal] = useState(0); // Total number of products
   const [loading, setLoading] = useState(true); // Loading state
 
   // Debounce search query
@@ -22,30 +18,26 @@ export default function ProductList() {
     return () => clearTimeout(timeout);
   }, [query]);
 
-  // Fetch products with pagination and search query
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await ProductsApi.list({
-        page,
-        perPage: pageSize,
-        q: debouncedQ || "",
-      });
-
-      const items = Array.isArray(data?.data) ? data.data : data || [];
-      setRows(items);
-      const meta = data?.meta;
-      setTotal(meta?.total ?? items.length);
-    } catch (e) {
-      SweetAlert.error(e?.data?.message || e?.message || "Failed to load products");
-    } finally {
-      setLoading(false);
-    }
-  }, [page, pageSize, debouncedQ]);
-
+  // Fetch products with search query
   useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const data = await ProductsApi.list({
+          q: debouncedQ || "",
+        });
+
+        const items = Array.isArray(data?.data) ? data.data : data || [];
+        setRows(items);
+      } catch (e) {
+        SweetAlert.error(e?.data?.message || e?.message || "Failed to load products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchProducts();
-  }, [fetchProducts]);
+  }, [debouncedQ]);
 
   // Handle delete product
   const handleDelete = async (id) => {
@@ -60,26 +52,12 @@ export default function ProductList() {
       await ProductsApi.remove(id);
       SweetAlert.success("Product deleted");
       // Reload the products list
-      fetchProducts();
+      const updatedRows = rows.filter((product) => product.id !== id);
+      setRows(updatedRows);
     } catch (e) {
       SweetAlert.error(e?.data?.message || e?.message || "Delete failed");
     }
   };
-
-  // Format date function (if required, but we don't need it for products)
-  const formatDate = (iso) => {
-    if (!iso) return "-";
-    try {
-      const d = new Date(iso);
-      return d.toLocaleDateString();
-    } catch {
-      return iso;
-    }
-  };
-
-  // Compute the total number of pages based on the server's total
-  const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const current = Math.min(page, totalPages);
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -93,7 +71,6 @@ export default function ProductList() {
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
-              setPage(1); // Reset to first page when the search query changes
             }}
             className="w-full sm:w-72 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#282560]"
           />
@@ -153,18 +130,6 @@ export default function ProductList() {
             )}
           </tbody>
         </table>
-
-        {/* Pagination */}
-        <Pagination
-          page={current}
-          pageSize={pageSize}
-          total={total}
-          onPageChange={setPage}
-          onPageSizeChange={(n) => {
-            setPageSize(n);
-            setPage(1);
-          }}
-        />
       </div>
     </div>
   );
