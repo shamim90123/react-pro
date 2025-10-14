@@ -11,6 +11,9 @@ import UserList from "./pages/users/list.jsx";
 import UserFormPage from "./pages/users/form.jsx";
 import ProductList from "./pages/products/list.jsx";
 import ProductFormPage from "./pages/products/form.jsx";
+import LeadStageList from "./pages/lead_stages/list.jsx";
+import LeadStageFormPage from "./pages/lead_stages/form.jsx";
+
 
 export default function App() {
   return (
@@ -34,6 +37,11 @@ export default function App() {
           <Route path="/product-setup" element={<ProductList />} />
           <Route path="/product/new" element={<ProductFormPage />} />
           <Route path="/product/:id/edit" element={<ProductFormPage />} />
+
+          <Route path="/lead-stages" element={<LeadStageList />} />
+          <Route path="/lead-stage/new" element={<LeadStageFormPage />} />
+          <Route path="/lead-stage/:id/edit" element={<LeadStageFormPage />} />
+
         </Route>
       </Route>
 
