@@ -26,10 +26,13 @@ export default function LeadList() {
     try {
       setLoading(true);
       const res = await LeadsApi.list({ page: p, perPage: ps, q });
-      // Laravel resource pagination typically returns:
-      // { data: [...], meta: { total, per_page, current_page, ... } }
-      const rows = res?.data ?? res?.data === 0 ? [] : (Array.isArray(res) ? res : []);
+
+      // Check if the response contains data and is an array
+      const rows = Array.isArray(res?.data) ? res.data : [];
+
+      console.log("Fetched leads:", rows);
       setItems(rows);
+
       const meta = res?.meta || {};
       setTotal(meta.total ?? rows.length);
     } catch (err) {
@@ -38,6 +41,7 @@ export default function LeadList() {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchList({ p: page, ps: pageSize, q: query });
