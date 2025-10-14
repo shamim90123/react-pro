@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LeadsApi } from "@/lib/leads";
+import { SweetAlert } from "@/components/ui/SweetAlert";
 
 export default function LeadFormPage() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    // core
     name: "",
     email: "",
     firstname: "",
@@ -16,13 +16,11 @@ export default function LeadFormPage() {
     city: "",
     link: "",
     item_id: "",
-    // products
-    sams_pay: false,
-    sams_manage: false,
-    sams_platform: false,
-    sams_pay_client_management: false,
-    // other
-    booked_demo: false,
+    sams_pay: "",
+    sams_manage: "",
+    sams_platform: "",
+    sams_pay_client_management: "",
+    booked_demo: "",
     comments: "",
   });
 
@@ -49,8 +47,7 @@ export default function LeadFormPage() {
       await LeadsApi.create(form);
       navigate("/lead-list");
     } catch (err) {
-      // you can map backend validation errors here
-      alert(`Failed to save: ${err.message}`);
+      SweetAlert.error(err.message || "Failed to save lead");
     } finally {
       setSubmitting(false);
     }
@@ -176,50 +173,60 @@ export default function LeadFormPage() {
           <section className="mb-8">
             <h2 className="text-sm font-semibold text-gray-600 mb-4">Product Interests & Booking</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              <label className="inline-flex items-center gap-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">SAMS Pay</label>
                 <input
-                  type="checkbox"
-                  checked={form.sams_pay}
-                  onChange={(e) => update("sams_pay", e.target.checked)}
+                  type="text"
+                  value={form.sams_pay}
+                  onChange={(e) => update("sams_pay", e.target.value)}
+                  placeholder="SAMS Pay"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-800">SAMS Pay</span>
-              </label>
+              </div>
 
-              <label className="inline-flex items-center gap-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">SAMS Manage</label>
                 <input
-                  type="checkbox"
-                  checked={form.sams_manage}
-                  onChange={(e) => update("sams_manage", e.target.checked)}
+                  type="text"
+                  value={form.sams_manage}
+                  onChange={(e) => update("sams_manage", e.target.value)}
+                  placeholder="SAMS Manage"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-800">SAMS Manage</span>
-              </label>
+              </div>
 
-              <label className="inline-flex items-center gap-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">SAMS Platform</label>
                 <input
-                  type="checkbox"
-                  checked={form.sams_platform}
-                  onChange={(e) => update("sams_platform", e.target.checked)}
+                  type="text"
+                  value={form.sams_platform}
+                  onChange={(e) => update("sams_platform", e.target.value)}
+                  placeholder="SAMS Platform"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-800">SAMS Platform</span>
-              </label>
+              </div>
 
-              <label className="inline-flex items-center gap-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">SAMS Pay Client Management</label>
                 <input
-                  type="checkbox"
-                  checked={form.sams_pay_client_management}
-                  onChange={(e) => update("sams_pay_client_management", e.target.checked)}
+                  type="text"
+                  value={form.sams_pay_client_management}
+                  onChange={(e) => update("sams_pay_client_management", e.target.value)}
+                  placeholder="SAMS Pay Client Management"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-800">SAMS Pay — Client Management</span>
-              </label>
+              </div>
 
-              <label className="inline-flex items-center gap-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Booked Demo</label>
                 <input
-                  type="checkbox"
-                  checked={form.booked_demo}
-                  onChange={(e) => update("booked_demo", e.target.checked)}
+                  type="text"
+                  value={form.booked_demo}
+                  onChange={(e) => update("booked_demo", e.target.value)}
+                  placeholder="Booked Demo"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
-                <span className="text-sm text-gray-800">Booked Demo</span>
-              </label>
+              </div>
             </div>
           </section>
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Pagination from "../../components/Pagination";
 import { LeadsApi } from "@/lib/leads";
+import Swal from "sweetalert2";
 
 const productLabels = {
   sams_pay: "SAMS Pay",
@@ -14,12 +15,11 @@ export default function LeadList() {
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
-  const [items, setItems] = useState([]); // api data
+  const [items, setItems] = useState([]); 
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Fetched meta (Laravel pagination)
   const [total, setTotal] = useState(0);
 
   const fetchList = async ({ p = page, ps = pageSize, q = query } = {}) => {
@@ -27,29 +27,27 @@ export default function LeadList() {
       setLoading(true);
       const res = await LeadsApi.list({ page: p, perPage: ps, q });
 
-      // Check if the response contains data and is an array
       const rows = Array.isArray(res?.data) ? res.data : [];
-
-      console.log("Fetched leads:", rows);
       setItems(rows);
 
       const meta = res?.meta || {};
       setTotal(meta.total ?? rows.length);
     } catch (err) {
-      alert(`Failed to load leads: ${err.message}`);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to load leads",
+        text: err.message,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-
   useEffect(() => {
     fetchList({ p: page, ps: pageSize, q: query });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, pageSize]);
 
   const filtered = useMemo(() => {
-    // If backend already filters with ?q=, you can just return items.
     const q = query.trim().toLowerCase();
     if (!q) return items;
     return items.filter((l) => {
@@ -75,18 +73,30 @@ export default function LeadList() {
   };
 
   const deleteLead = async (id) => {
-    if (!confirm("Delete this lead?")) return;
-    try {
-      await LeadsApi.remove(id);
-      fetchList(); // refresh current page
-    } catch (err) {
-      alert(`Delete failed: ${err.message}`);
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await LeadsApi.remove(id);
+          fetchList(); 
+          Swal.fire("Deleted!", "The lead has been deleted.", "success");
+        } catch (err) {
+          Swal.fire("Failed!", `Delete failed: ${err.message}`, "error");
+        }
+      }
+    });
   };
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const current = Math.min(page, totalPages);
-  const rows = filtered; // already paginated by backend
+  const rows = filtered;
 
   const renderProducts = (lead) => {
     const tags = Object.keys(productLabels).filter((k) => !!lead[k]);
@@ -107,7 +117,6 @@ export default function LeadList() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <h1 className="text-2xl font-semibold text-gray-800">Lead List</h1>
         <div className="flex items-center gap-3 w-full sm:w-auto">
@@ -119,12 +128,12 @@ export default function LeadList() {
             onKeyDown={(e) => e.key === "Enter" && handleSearch()}
             className="w-full sm:w-80 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
           />
-          <button
+          {/* <button
             onClick={handleSearch}
             className="px-3 py-2 text-sm border border-gray-300 rounded-lg hover:bg-gray-50"
           >
             Search
-          </button>
+          </button> */}
           <button
             onClick={() => navigate("/leads/new")}
             className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg"
@@ -134,7 +143,6 @@ export default function LeadList() {
         </div>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
         <table className="min-w-full text-sm text-left text-gray-700">
           <thead className="bg-gray-100 text-xs uppercase font-semibold text-gray-600">
