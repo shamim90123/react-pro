@@ -1,3 +1,4 @@
+
 # Frontend Project
 
 ## Overview
@@ -23,32 +24,38 @@ This is the **Frontend** part of the project, built with **React** and **Tailwin
 
 ```bash
 git clone <repository-url>
-2. Navigate to the project folder:
-bash
-Copy code
+```
+
+### 2. Navigate to the project folder:
+
+```bash
 cd <frontend-directory>
-3. Install the required dependencies:
-bash
-Copy code
+```
+
+### 3. Install the required dependencies:
+
+```bash
 npm install
-4. Run the development server:
-bash
-Copy code
+```
+
+### 4. Run the development server:
+
+```bash
 npm run dev
-This should start the development server, typically at http://localhost:3000.
+```
 
-Available Scripts
-npm run dev: Starts the development server in hot-reload mode.
+This should start the development server, typically at [http://localhost:3000](http://localhost:3000).
 
-npm run build: Bundles the app for production.
+## Available Scripts
 
-npm run lint: Lints the project for code style issues.
+- **`npm run dev`**: Starts the development server in hot-reload mode.
+- **`npm run build`**: Bundles the app for production.
+- **`npm run lint`**: Lints the project for code style issues.
+- **`npm run test`**: Runs the unit tests.
 
-npm run test: Runs the unit tests.
+## Project Structure
 
-Project Structure
-bash
-Copy code
+```
 /public             # Static assets (e.g., images, icons)
 /src                # Application source code
   /components       # Reusable UI components
@@ -56,10 +63,8 @@ Copy code
   /services         # API interaction logic
   /utils            # Utility functions
   /assets           # Images, fonts, etc.
-Styling
-This project uses Tailwind CSS for styling. The configuration is in tailwind.config.js. You can adjust the theme, breakpoints, and other settings there.
+```
 
-javascript
-Copy code
+## Styling
 
-This format can be used as the base `README.md` file for your frontend project. Adjust `<repository-url>` and 
+This project uses **Tailwind CSS** for styling. The configuration is in `tailwind.config.js`. You can adjust the theme, breakpoints, and other settings there.
