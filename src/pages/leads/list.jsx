@@ -4,13 +4,6 @@ import Pagination from "../../components/Pagination";
 import { LeadsApi } from "@/lib/leads";
 import Swal from "sweetalert2";
 
-const productLabels = {
-  sams_pay: "SAMS Pay",
-  sams_manage: "SAMS Manage",
-  sams_platform: "SAMS Platform",
-  sams_pay_client_management: "SAMS Pay CM",
-};
-
 export default function LeadList() {
   const navigate = useNavigate();
 
@@ -98,23 +91,6 @@ export default function LeadList() {
   const current = Math.min(page, totalPages);
   const rows = filtered;
 
-  const renderProducts = (lead) => {
-    const tags = Object.keys(productLabels).filter((k) => !!lead[k]);
-    if (!tags.length) return <span className="text-gray-400">—</span>;
-    return (
-      <div className="flex flex-wrap gap-1">
-        {tags.map((k) => (
-          <span
-            key={k}
-            className="px-2 py-0.5 text-[11px] font-medium rounded-full bg-indigo-50 text-indigo-700"
-          >
-            {productLabels[k]}
-          </span>
-        ))}
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -151,8 +127,6 @@ export default function LeadList() {
               <th className="px-6 py-3">Email</th>
               <th className="px-6 py-3">Phone</th>
               <th className="px-6 py-3">City</th>
-              <th className="px-6 py-3">Products</th>
-              <th className="px-6 py-3">Booked Demo</th>
               <th className="px-6 py-3">Created At</th>
               <th className="px-6 py-3 text-right">Actions</th>
             </tr>
@@ -180,14 +154,7 @@ export default function LeadList() {
                   <td className="px-6 py-3">{lead.email}</td>
                   <td className="px-6 py-3">{lead.phone || <span className="text-gray-400">—</span>}</td>
                   <td className="px-6 py-3">{lead.city || <span className="text-gray-400">—</span>}</td>
-                  <td className="px-6 py-3">{renderProducts(lead)}</td>
-                  <td className="px-6 py-3">
-                    {lead.booked_demo ? (
-                      <span className="px-2 py-0.5 text-[11px] rounded-full bg-emerald-100 text-emerald-700">Yes</span>
-                    ) : (
-                      <span className="px-2 py-0.5 text-[11px] rounded-full bg-gray-100 text-gray-600">No</span>
-                    )}
-                  </td>
+                 
                   <td className="px-6 py-3">
                     {lead.created_at?.slice?.(0, 10) || <span className="text-gray-400">—</span>}
                   </td>
