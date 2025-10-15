@@ -104,21 +104,40 @@ export default function LeadContactPage() {
       {lead ? (
         <>
           {/* Lead Info in Same Row with Better Design */}
-          <div className="bg-white shadow-sm p-6 mb-6 rounded-lg flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-semibold text-gray-800">{lead.lead_name}</h1>
-              <p className="text-lg text-gray-600"><strong>City:</strong> {lead.city}</p>
-              <p className="text-lg text-gray-600"><strong>Email:</strong> {lead.email}</p>
-              <p className="text-lg text-gray-600"><strong>Phone:</strong> {lead.phone}</p>
-            </div>
-            {/* Add Contact Button in the Header */}
-            <button
-              onClick={addContact}
-              className="px-4 py-2 text-sm text-white bg-[#282560] rounded-lg"
-            >
-              + Add Contact
-            </button>
-          </div>
+         <div className="bg-white shadow-sm p-6 mb-6 rounded-lg">
+  {/* Header with Lead Data */}
+  <div className="mb-4">
+    <h1 className="text-3xl font-semibold text-gray-800">{lead.lead_name}</h1>
+  </div>
+
+  {/* Table for Lead Data in One Row */}
+  <table className="min-w-full table-auto">
+    <thead>
+      <tr className="border-b">
+        <th className="px-4 py-2 text-left">City</th>
+        <th className="px-4 py-2 text-left">Email</th>
+        <th className="px-4 py-2 text-left">Phone</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr className="border-b">
+        <td className="px-4 py-2">{lead.city}</td>
+        <td className="px-4 py-2">{lead.email}</td>
+        <td className="px-4 py-2">{lead.phone}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  {/* Add Contact Button in the Header */}
+  <div className="flex justify-end mt-4">
+    <button
+      onClick={addContact}
+      className="px-4 py-2 text-sm text-white bg-[#282560] rounded-lg"
+    >
+      + Add Contact
+    </button>
+  </div>
+</div>
 
           {/* Lead Contacts */}
           <h2 className="text-xl font-semibold mb-4">Lead Contacts</h2>
