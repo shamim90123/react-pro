@@ -49,8 +49,8 @@ export default function Header({ onToggleSidebar }) {
         </button>
 
         <Link to="/dashboard" className="flex items-center">
-          <img src="/img/logo.png" alt="CRM Backend" className="h-7 w-auto" />
-          <span className="sr-only">CRM Backend</span>
+          <img src="/img/logo.png" alt="SAMS Backend" className="h-7 w-auto" />
+          <span className="sr-only">SAMS Backend</span>
         </Link>
 
         <div className="relative">
