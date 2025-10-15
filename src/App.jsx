@@ -5,8 +5,9 @@ import PublicOnlyRoute from "@/router/PublicOnlyRoute";
 import Login from "@/pages/auth/Login";
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import Dashboard from "./Dashboard.jsx";
-import LeadList from "./pages/leads/list.jsx";
-import LeadFormPage from "./pages/leads/form.jsx";
+import LeadList from "./pages/leads/LeadList.jsx";
+import LeadFormPage from "./pages/leads/LeadFormPage.jsx";
+import LeadContactPage from "./pages/leads/LeadContact.jsx";
 import UserList from "./pages/users/list.jsx";
 import UserFormPage from "./pages/users/form.jsx";
 import ProductList from "./pages/products/list.jsx";
@@ -29,7 +30,7 @@ export default function App() {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/lead-list" element={<LeadList />} />
           <Route path="/leads/new" element={<LeadFormPage />} />
-          <Route path="/leads/:id/edit" element={<LeadFormPage />} />
+          <Route path="/leads/:id/edit" element={<LeadContactPage />} />
           <Route path="/user-list" element={<UserList />} />
           <Route path="/user/new" element={<UserFormPage />} />
           <Route path="/user/:id/edit" element={<UserFormPage />} />
