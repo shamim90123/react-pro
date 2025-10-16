@@ -160,34 +160,34 @@ export default function LeadContactPage() {
 
       {/* Contacts */}
       <section className="mb-8">
-  <div className="mb-4 flex items-center justify-between">
-    <h2 className="text-xl font-semibold">Lead Contacts</h2>
-    <button
-      onClick={openAddContact}
-      className="rounded-lg bg-[#282560] px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
-    >
-      + Add Contact
-    </button>
-  </div>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Lead Contacts</h2>
+          <button
+            onClick={openAddContact}
+            className="rounded-lg bg-[#282560] px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
+          >
+            + Add Contact
+          </button>
+        </div>
 
-  {contacts?.length ? (
-    <ContactsTable contacts={contacts} onEdit={openEditContact} />
-  ) : (
-    <p className="mb-6">
-      No contacts available. Click <b>“Add Contact”</b> to add one.
-    </p>
-  )}
+        {contacts?.length ? (
+          <ContactsTable contacts={contacts} onEdit={openEditContact} />
+        ) : (
+          <p className="mb-6">
+            No contacts available. Click <b>“Add Contact”</b> to add one.
+          </p>
+        )}
 
-  {isEditing && (
-    <ContactForm
-      form={contactForm}
-      submitting={contactSubmitting}
-      onFieldChange={onContactField}
-      onCancel={() => setIsEditing(false)}
-      onSubmit={submitContact}
-    />
-  )}
-</section>
+        {isEditing && (
+          <ContactForm
+            form={contactForm}
+            submitting={contactSubmitting}
+            onFieldChange={onContactField}
+            onCancel={() => setIsEditing(false)}
+            onSubmit={submitContact}
+          />
+        )}
+      </section>
 
 
       {/* Products */}
