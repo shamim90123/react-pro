@@ -18,16 +18,17 @@ export default function LeadHeader({ lead }) {
       <table className="min-w-full table-auto">
         <thead>
           <tr className="border-b">
+            <th className="px-4 py-2 text-left">Destination</th>
             <th className="px-4 py-2 text-left">City</th>
             <th className="px-4 py-2 text-left">Email</th>
-            <th className="px-4 py-2 text-left">Phone</th>
+            {/* <th className="px-4 py-2 text-left">Phone</th> */}
           </tr>
         </thead>
         <tbody>
           <tr className="border-b">
             <td className="px-4 py-2">{lead.city || "—"}</td>
             <td className="px-4 py-2">{lead.email || "—"}</td>
-            <td className="px-4 py-2">{lead.phone || "—"}</td>
+            {/* <td className="px-4 py-2">{lead.phone || "—"}</td> */}
           </tr>
         </tbody>
       </table>

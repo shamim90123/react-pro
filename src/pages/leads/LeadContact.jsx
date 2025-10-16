@@ -10,6 +10,7 @@ import ContactForm from "@/components/leads/ContactForm";
 import ProductsSection from "@/components/leads/ProductsSection";
 import CommentsSection from "@/components/leads/CommentsSection";
 import { useComments } from "@/hooks/useComments";
+import UISkeleton from "@/components/ui/UISkeleton";
 
 export default function LeadContactPage() {
   const { id } = useParams();
@@ -152,7 +153,9 @@ export default function LeadContactPage() {
     else setSelectedProductIds(new Set(products.map((p) => p.id)));
   };
 
-  if (!lead) return <div className="p-6">Loading lead details…</div>;
+  if (!lead) return <div className="p-6">
+      <UISkeleton count={15} height={20} style={{ marginTop: 10 }} />
+    </div>;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
