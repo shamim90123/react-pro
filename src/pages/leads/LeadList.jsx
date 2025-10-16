@@ -152,11 +152,7 @@ export default function LeadList() {
 
           <tbody>
             {loading ? (
-              <tr>
-                <td colSpan={4} className="px-6 py-6 text-center text-gray-500">
-                  Loading…
-                </td>
-              </tr>
+               <RowLoading colSpan={4} />
             ) : hasLeads ? (
               leads.map((lead) => (
                 <tr
@@ -272,5 +268,20 @@ function LeadForm({ form, submitting, onChange, onCancel, onSubmit }) {
         </button>
       </div>
     </form>
+  );
+}
+
+
+function RowLoading({ colSpan }) {
+  return (
+    <tr>
+      <td colSpan={colSpan} className="px-6 py-6">
+        <div className="animate-pulse space-y-3">
+          <div className="h-4 w-2/3 rounded bg-gray-200" />
+          <div className="h-4 w-1/2 rounded bg-gray-200" />
+          <div className="h-4 w-3/4 rounded bg-gray-200" />
+        </div>
+      </td>
+    </tr>
   );
 }
