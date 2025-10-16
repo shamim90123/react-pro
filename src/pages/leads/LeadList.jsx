@@ -1,45 +1,39 @@
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LeadsApi } from "@/lib/leads"; // Assuming you have this API
+import { LeadsApi } from "@/lib/leads";
+import { SweetAlert } from "@/components/ui/SweetAlert";
 
 export default function LeadList() {
-
+  // -------------------- Router --------------------
   const navigate = useNavigate();
+
+  // -------------------- State --------------------
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
   const [form, setForm] = useState({
+    lead_id: undefined,
     lead_name: "",
     destination_id: "",
     city: "",
   });
-  
-  const updateForm = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // -------------------- Helpers --------------------
+  const updateForm = (key, value) =>
+    setForm((prev) => ({ ...prev, [key]: value }));
 
-    setSubmitting(true);
-    try {
-      await LeadsApi.create(form); // API call to create a new lead
-      fetchLeads(); // Refresh the lead list after creating a lead
-      setShowLeadForm(false); // Close the form after submission
-      setForm({ lead_name: "", destination_id: "", city: "" }); // Reset form
-    } catch (err) {
-      console.error("Error creating lead:", err);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const resetForm = () =>
+    setForm({ lead_id: undefined, lead_name: "", destination_id: "", city: "" });
 
-  // Fetch all leads
+  const formatDate = (iso) => (iso ? String(iso).slice(0, 10) : "—");
+
+  // -------------------- API --------------------
   const fetchLeads = async () => {
     setLoading(true);
     try {
-      const response = await LeadsApi.list({ page: 1, perPage: 10 });
-      setLeads(response.data);
+      const res = await LeadsApi.list({ page: 1, perPage: 10 });
+      setLeads(res.data || []);
     } catch (err) {
       console.error("Error fetching leads", err);
     } finally {
@@ -47,117 +41,107 @@ export default function LeadList() {
     }
   };
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      // Backend supports upsert via lead_id (create or update)
+      await LeadsApi.create({
+        lead_id: form.lead_id, // optional for update
+        lead_name: form.lead_name,
+        destination_id: form.destination_id,
+        city: form.city,
+      });
+      await fetchLeads();
+      setShowLeadForm(false);
+      resetForm();
+    } catch (err) {
+      console.error("Error saving lead:", err);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteLead = async (id) => {
+    try {
+      const result = await SweetAlert.confirm({
+        title: "Delete Lead?",
+        text: "This action cannot be undone.",
+        confirmButtonText: "Yes, delete it",
+        cancelButtonText: "Cancel",
+      });
+
+      if (result.isConfirmed) {
+        SweetAlert.info("Deleting...");
+        await LeadsApi.remove(id);
+        SweetAlert.success("Lead deleted successfully");
+        fetchLeads();
+      }
+    } catch (err) {
+      console.error("Error deleting lead:", err);
+      SweetAlert.error("Failed to delete lead");
+    }
+  };
+
+  // -------------------- Effects --------------------
   useEffect(() => {
     fetchLeads();
   }, []);
 
-  const handleAddLead = () => {
-    setShowLeadForm(!showLeadForm);
+  // -------------------- Handlers --------------------
+  const toggleLeadForm = () => {
+    setShowLeadForm((s) => !s);
+    if (showLeadForm) resetForm(); // closing: clear form
   };
 
   const handleEditLead = (id) => {
+    const leadToEdit = leads.find((l) => l.id === id);
+    if (!leadToEdit) return;
+    setForm({
+      lead_id: leadToEdit.id,
+      lead_name: leadToEdit.lead_name || "",
+      destination_id: leadToEdit.destination_id || "",
+      city: leadToEdit.city || "",
+    });
     setShowLeadForm(true);
-    const leadToEdit = leads.find(lead => lead.id === id);
-    if (leadToEdit) {
-      setForm({
-        lead_name: leadToEdit.lead_name || "",
-        destination_id: leadToEdit.destination_id || "",
-        city: leadToEdit.city || "",
-        lead_id: leadToEdit.id
-      });
-    }
   };
 
-  const handleViewLead = (id) => {
-    navigate(`/leads/${id}/edit`);
-  }
+  const handleViewLead = (id) => navigate(`/leads/${id}/edit`);
 
+  // -------------------- Memo --------------------
+  const hasLeads = useMemo(() => (leads || []).length > 0, [leads]);
+
+  // -------------------- Render --------------------
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="flex justify-between items-center mb-6">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-800">Lead List</h1>
         <button
-          onClick={handleAddLead}
-          className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg"
+          onClick={toggleLeadForm}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
         >
           + Add Lead
         </button>
       </div>
 
-      {/* lead Form Start */}
+      {/* Form */}
       {showLeadForm && (
-        <div className="flex flex-row pb-8">
-          <form
+        <div className="pb-8">
+          <LeadForm
+            form={form}
+            submitting={submitting}
+            onChange={updateForm}
+            onCancel={toggleLeadForm}
             onSubmit={handleSubmit}
-            className="flex flex-wrap gap-4 items-center w-full"
-          >
-            <div className="flex-1 min-w-[200px]">
-              <input
-                value={form.lead_name}
-                onChange={(e) => updateForm("lead_name", e.target.value)}
-                placeholder="Lead Name"
-                className="w-full px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                required
-              />
-            </div>
-
-            <div className="flex-1 min-w-[200px]">
-              <input
-                value={form.city}
-                onChange={(e) => updateForm("city", e.target.value)}
-                placeholder="City"
-                className="w-full px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                required
-              />
-            </div>
-
-            <div className="flex-1 min-w-[200px]">
-              <select
-                value={form.destination_id}
-                onChange={(e) => updateForm("destination_id", e.target.value)}
-                className="w-full px-5 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                required
-              >
-                <option value="">Select Destination</option>
-                <option value="1">Destination 1</option>
-                <option value="2">Destination 2</option>
-              </select>
-            </div>
-
-            {/* ✅ Buttons Group */}
-            <div className="flex items-center gap-3">
-              {/* Cancel Button */}
-              <button
-                type="button"
-                onClick={handleAddLead}
-                className="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors duration-200"
-              >
-                Cancel
-              </button>
-
-              {/* Save Button */}
-              <button
-                type="submit"
-                disabled={submitting}
-                className={`px-6 py-2.5 text-sm font-medium text-white rounded-lg transition-colors duration-200 shadow-sm ${
-                  submitting
-                    ? "bg-blue-300 cursor-not-allowed"
-                    : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200"
-                }`}
-              >
-                {submitting ? "Saving…" : "Save"}
-              </button>
-            </div>
-
-          </form>
+          />
         </div>
       )}
-      {/* lead Form end */}
 
-      {/* Lead Table */}
+      {/* Table */}
       <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
-        <table className="min-w-full text-sm text-left text-gray-700">
-          <thead className="bg-gray-100 text-xs uppercase font-semibold text-gray-600">
+        <table className="min-w-full text-left text-sm text-gray-700">
+          <thead className="bg-gray-100 text-xs font-semibold uppercase text-gray-600">
             <tr>
               <th className="px-6 py-3">Lead Name</th>
               <th className="px-6 py-3">City</th>
@@ -165,58 +149,56 @@ export default function LeadList() {
               <th className="px-6 py-3 text-right">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {loading ? (
               <tr>
-                <td className="px-6 py-6 text-center text-gray-500" colSpan={4}>
+                <td colSpan={4} className="px-6 py-6 text-center text-gray-500">
                   Loading…
                 </td>
               </tr>
-            ) : leads.length ? (
+            ) : hasLeads ? (
               leads.map((lead) => (
-                <tr key={lead.id} className="bg-white border-b border-gray-100 hover:bg-gray-50">
-                 <td
-                    className="px-6 py-3 font-medium text-gray-900 cursor-pointer hover:text-[#282560] 
-                    hover:underline"
+                <tr
+                  key={lead.id}
+                  className="border-b border-gray-100 bg-white hover:bg-gray-50"
+                >
+                  <td
+                    className="cursor-pointer px-6 py-3 font-medium text-gray-900 hover:underline"
                     onClick={() => handleViewLead(lead.id)}
                   >
                     {lead.lead_name}
                   </td>
-
-                  <td className="px-6 py-3">{lead.city}</td>
-                  <td className="px-6 py-3">{lead.created_at?.slice(0, 10) || <span className="text-gray-400">—</span>}</td>
-                  <td className="px-6 py-3 text-right space-x-2">
-                   
+                  <td className="px-6 py-3">{lead.city || "—"}</td>
+                  <td className="px-6 py-3">{formatDate(lead.created_at)}</td>
+                  <td className="space-x-2 px-6 py-3 text-right">
                     <button
                       onClick={() => handleViewLead(lead.id)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition"
+                      className="inline-flex items-center gap-1 rounded-md bg-green-50 px-3 py-1.5 text-sm font-medium text-green-600 transition hover:bg-green-100"
                     >
-                      <i className="fa-solid fa-eye text-xs"></i>
+                      <i className="fa-solid fa-eye text-xs" />
                       View
                     </button>
-
                     <button
                       onClick={() => handleEditLead(lead.id)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition"
+                      className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-600 transition hover:bg-blue-100"
                     >
-                      <i className="fa-solid fa-pen text-xs"></i>
+                      <i className="fa-solid fa-pen text-xs" />
                       Edit
                     </button>
-
                     <button
                       onClick={() => handleDeleteLead(lead.id)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 transition"
+                      className="inline-flex items-center gap-1 rounded-md bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-100"
                     >
-                      <i className="fa-solid fa-trash text-xs"></i>
+                      <i className="fa-solid fa-trash text-xs" />
                       Delete
                     </button>
                   </td>
-
                 </tr>
               ))
             ) : (
               <tr>
-                <td className="px-6 py-6 text-center text-gray-500" colSpan={4}>
+                <td colSpan={4} className="px-6 py-6 text-center text-gray-500">
                   No leads found.
                 </td>
               </tr>
@@ -225,5 +207,70 @@ export default function LeadList() {
         </table>
       </div>
     </div>
+  );
+}
+
+/* ==================== Sub-Components ==================== */
+
+function LeadForm({ form, submitting, onChange, onCancel, onSubmit }) {
+  return (
+    <form
+      onSubmit={onSubmit}
+      className="flex w-full flex-wrap items-center gap-4"
+    >
+      <div className="min-w-[200px] flex-1">
+        <input
+          value={form.lead_name}
+          onChange={(e) => onChange("lead_name", e.target.value)}
+          placeholder="Lead Name"
+          className="w-full rounded-lg border border-gray-300 px-5 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
+          required
+        />
+      </div>
+
+      <div className="min-w-[200px] flex-1">
+        <input
+          value={form.city}
+          onChange={(e) => onChange("city", e.target.value)}
+          placeholder="City"
+          className="w-full rounded-lg border border-gray-300 px-5 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
+          required
+        />
+      </div>
+
+      <div className="min-w-[200px] flex-1">
+        <select
+          value={form.destination_id}
+          onChange={(e) => onChange("destination_id", e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-5 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
+          required
+        >
+          <option value="">Select Destination</option>
+          <option value="1">Destination 1</option>
+          <option value="2">Destination 2</option>
+        </select>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-100"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={submitting}
+          className={`rounded-lg px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors duration-200 ${
+            submitting
+              ? "cursor-not-allowed bg-blue-300"
+              : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200"
+          }`}
+        >
+          {submitting ? "Saving…" : form.lead_id ? "Update" : "Save"}
+        </button>
+      </div>
+    </form>
   );
 }
