@@ -2,16 +2,22 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "@/router/ProtectedRoute";
 import PublicOnlyRoute from "@/router/PublicOnlyRoute";
+
 import Login from "@/pages/auth/Login";
+
 import DashboardLayout from "./layouts/DashboardLayout.jsx";
 import Dashboard from "./Dashboard.jsx";
+
 import LeadList from "./pages/leads/LeadList.jsx";
 import LeadFormPage from "./pages/leads/LeadFormPage.jsx";
 import LeadContactPage from "./pages/leads/LeadContact.jsx";
+
 import UserList from "./pages/users/list.jsx";
 import UserFormPage from "./pages/users/form.jsx";
+
 import ProductList from "./pages/products/list.jsx";
 import ProductFormPage from "./pages/products/form.jsx";
+
 import LeadStageList from "./pages/lead_stages/list.jsx";
 import LeadStageFormPage from "./pages/lead_stages/form.jsx";
 
