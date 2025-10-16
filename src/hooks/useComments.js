@@ -1,3 +1,4 @@
+// src/hooks/useComments.js
 import { useEffect, useState } from "react";
 import { LeadsApi } from "@/lib/leads";
 import { SweetAlert } from "@/components/ui/SweetAlert";
@@ -23,112 +24,102 @@ export function useComments(leadId, initialPerPage = 10) {
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
 
+  const fetchPage = async (p = 1) => {
+    setLoading(true);
+    try {
+      const res = await LeadsApi.listComments(leadId, { page: p, perPage: initialPerPage });
+      const list = res?.data ?? res?.items ?? [];
+      setItems(list);
+      setMeta(normalizeMeta(res, initialPerPage));
+    } catch (e) {
+      console.error(e);
+      SweetAlert.error("Failed to load comments");
+      setItems([]);
+      setMeta({ current_page: 1, last_page: 1, per_page: initialPerPage, total: 0 });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!leadId) return;
-    setPage(1); // reset when lead changes
+    setPage(1); // reset on lead change
   }, [leadId]);
 
   useEffect(() => {
     if (!leadId) return;
-    (async () => {
-      setLoading(true);
-      try {
-        const res = await LeadsApi.listComments(leadId, { page, perPage: initialPerPage });
-        const list = res?.data ?? res?.items ?? [];
-        setItems(list);
-        setMeta(normalizeMeta(res, initialPerPage));
-      } catch (e) {
-        console.error(e);
-        SweetAlert.error("Failed to load comments");
-        setItems([]);
-        setMeta({ current_page: 1, last_page: 1, per_page: initialPerPage, total: 0 });
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, [leadId, page, initialPerPage]);
+    fetchPage(page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [leadId, page]);
 
-    const add = async (text) => {
+  // 🔧 FIX: If you're on page 1, show the new comment immediately.
+  const add = async (text) => {
     if (!text?.trim()) return SweetAlert.error("Write a comment first");
     setAdding(true);
     try {
-        await LeadsApi.addComment(leadId, { comment: text.trim() });
+      const res = await LeadsApi.addComment(leadId, { comment: text.trim() });
 
-        // Optimistically bump total, and jump to page 1 (effect will fetch fresh list)
-        setMeta((m) => ({ ...m, total: (m?.total ?? 0) + 1, current_page: 1 }));
+      // Try to get the created comment from API response
+      const created =
+        res?.comment ?? // { comment: {...} }
+        (Array.isArray(res?.data) ? res.data[0] : res?.data) ?? // sometimes APIs return data
+        res; // fallback
+
+      // Optimistically bump total
+      setMeta((m) => ({ ...m, total: (m?.total ?? 0) + 1 }));
+
+      if (page === 1) {
+        if (created && created.id) {
+          // Prepend locally (assumes newest-first ordering on page 1)
+          setItems((prev) => [created, ...prev].slice(0, meta.per_page || initialPerPage));
+        } else {
+          // If API didn't return the created object, just refetch page 1
+          await fetchPage(1);
+        }
+      } else {
+        // If you're not on page 1, jump there so user sees the newest
         setPage(1);
+      }
 
-        SweetAlert.success("Comment added");
+      SweetAlert.success("Comment added");
     } catch (e) {
-        console.error(e);
-        SweetAlert.error("Failed to add comment");
+      console.error(e);
+      SweetAlert.error("Failed to add comment");
     } finally {
-        setAdding(false);
+      setAdding(false);
     }
-    };
+  };
 
-
-  // Helper: recompute page + meta after deletion, without refetch.
-    function adjustAfterDelete(prevItems, deletedId, prevMeta) {
-    const items = prevItems.filter((c) => c.id !== deletedId);
-    const newTotal = Math.max(0, (prevMeta?.total ?? 0) - 1);
-    const perPage = prevMeta?.per_page ?? 10;
-
-    // How many pages exist after deletion?
-    const newLastPage = Math.max(1, Math.ceil(newTotal / perPage));
-
-    // If current page is now beyond last page (e.g., deleted the last item on the last page), step back.
-    const newCurrentPage = Math.min(prevMeta?.current_page ?? 1, newLastPage);
-
-    const newMeta = {
-        ...prevMeta,
-        total: newTotal,
-        last_page: newLastPage,
-        current_page: newCurrentPage,
-    };
-
-    return { items, meta: newMeta };
-    }
-
-    // Replace your remove() with this one
-    const remove = async (commentId) => {
+  // (Keep your improved delete that updates meta.total immediately)
+  const remove = async (commentId) => {
     const confirm = await SweetAlert.confirm({
-        title: "Delete this comment?",
-        text: "This action cannot be undone.",
-        confirmButtonText: "Delete",
+      title: "Delete this comment?",
+      text: "This action cannot be undone.",
+      confirmButtonText: "Delete",
     });
     if (!confirm.isConfirmed) return;
 
     try {
-        await LeadsApi.removeComment(leadId, commentId);
+      await LeadsApi.removeComment(leadId, commentId);
 
-        // Optimistically update list + meta.total immediately
-        setItems((prevItems) => {
-        // Use functional meta update based on prev state to keep in sync
-        let nextMetaSnapshot;
-        setMeta((prevMeta) => {
-            const adjusted = adjustAfterDelete(prevItems, commentId, prevMeta);
-            nextMetaSnapshot = adjusted.meta; // capture for page sync below
-            return adjusted.meta;
-        });
+      // Optimistically update list + total
+      setItems((prev) => prev.filter((c) => c.id !== commentId));
+      setMeta((m) => {
+        const newTotal = Math.max(0, (m?.total ?? 0) - 1);
+        const perPage = m?.per_page ?? initialPerPage;
+        const newLastPage = Math.max(1, Math.ceil(newTotal / perPage));
+        const newCurrent = Math.min(m?.current_page ?? 1, newLastPage);
+        // If we emptied the current page and can go back, do it
+        if ((m?.current_page ?? 1) > newCurrent) setPage(newCurrent);
+        return { ...m, total: newTotal, last_page: newLastPage, current_page: newCurrent };
+      });
 
-        const after = prevItems.filter((c) => c.id !== commentId);
-        // If the current page became empty *and* there is a previous page, jump to it.
-        // We do the page change after meta is updated.
-        if (after.length === 0 && (nextMetaSnapshot?.current_page ?? 1) < (meta?.current_page ?? 1)) {
-            // Trigger a fetch to the previous page; UI count already correct from meta update.
-            setPage(nextMetaSnapshot.current_page);
-        }
-        return after;
-        });
-
-        SweetAlert.success("Comment deleted");
+      SweetAlert.success("Comment deleted");
     } catch (e) {
-        console.error(e);
-        SweetAlert.error("Failed to delete comment");
+      console.error(e);
+      SweetAlert.error("Failed to delete comment");
     }
-    };
-
+  };
 
   return {
     items,
