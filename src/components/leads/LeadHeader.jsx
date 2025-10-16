@@ -1,8 +1,18 @@
-export default function LeadHeader({ lead, onAddContact }) {
+import { useNavigate } from "react-router-dom";
+
+export default function LeadHeader({ lead }) {
+  const navigate = useNavigate();
+
   return (
     <div className="mb-6 rounded-lg bg-white p-6 shadow-sm">
-      <div className="mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <h1 className="text-3xl font-semibold text-gray-800">{lead.lead_name}</h1>
+        <button
+          onClick={() => navigate("/lead-list")} // 🔹 update this route if your list path is different
+          className="rounded-lg bg-gray-200 px-4 py-2 text-sm text-gray-800 transition-colors hover:bg-gray-300"
+        >
+          ← Back to List
+        </button>
       </div>
 
       <table className="min-w-full table-auto">
@@ -21,15 +31,6 @@ export default function LeadHeader({ lead, onAddContact }) {
           </tr>
         </tbody>
       </table>
-
-      <div className="mt-4 flex justify-end">
-        <button
-          onClick={onAddContact}
-          className="rounded-lg bg-[#282560] px-4 py-2 text-sm text-white transition-colors hover:opacity-90"
-        >
-          + Add Contact
-        </button>
-      </div>
     </div>
   );
 }
