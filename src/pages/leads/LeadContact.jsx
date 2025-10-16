@@ -5,7 +5,7 @@ import { ProductsApi } from "@/lib/products";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 
 /* =========================================================
-   Lead Contact Page (with Comments)
+   Lead Contact Page (with Comments Pagination)
 ========================================================= */
 export default function LeadContactPage() {
   const { id } = useParams();
@@ -30,12 +30,13 @@ export default function LeadContactPage() {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [selectedProductIds, setSelectedProductIds] = useState(new Set()); // Set<number|string>
 
-  // -------- Comments --------
+  // -------- Comments (Paginated) --------
   const [comments, setComments] = useState([]);
-  const [commentsMeta, setCommentsMeta] = useState(null); // paginator meta or null
+  const [commentsMeta, setCommentsMeta] = useState(null); // { current_page, last_page, per_page, total }
   const [loadingComments, setLoadingComments] = useState(false);
   const [addingComment, setAddingComment] = useState(false);
   const [newComment, setNewComment] = useState("");
+  const [commentsPage, setCommentsPage] = useState(1);
 
   // Derived
   const allSelected = useMemo(
@@ -43,7 +44,7 @@ export default function LeadContactPage() {
     [products, selectedProductIds]
   );
 
-  /* ---------------- API: Load Lead + Contacts (+ maybe comments) ---------------- */
+  /* ---------------- API: Load Lead (always fetch paginated comments after) ---------------- */
   useEffect(() => {
     (async () => {
       try {
@@ -51,24 +52,17 @@ export default function LeadContactPage() {
         setLead(leadData);
         setContacts(leadData.contacts || []);
 
-        // If your show() returns comments inline, use them.
-        if (Array.isArray(leadData.comments)) {
-          setComments(leadData.comments);
-          setCommentsMeta(null);
-        } else {
-          // Otherwise, load comments paginated
-          await loadComments(1);
-        }
-
         // Pre-select already linked products if available in response
         const prelinked = leadData.product_ids || [];
         setSelectedProductIds(new Set(prelinked));
+
+        // Always load paginated comments so pager is present on first render
+        setCommentsPage(1); // ensure first page on lead change
       } catch (e) {
         console.error(e);
         SweetAlert.error("Failed to load lead");
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   /* ---------------- API: Load Products ---------------- */
@@ -86,6 +80,59 @@ export default function LeadContactPage() {
       }
     })();
   }, []);
+
+  /* ---------------- API: Load Comments (driven by commentsPage) ---------------- */
+  useEffect(() => {
+    if (!id) return;
+    loadComments(commentsPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, commentsPage]);
+
+  const normalizeMeta = (raw, fallbackPerPage = 10) => {
+    // Supports {data, meta} OR root-level pagination keys
+    const meta = raw?.meta ?? {};
+    const cp =
+      meta.current_page ??
+      raw?.current_page ??
+      1;
+    const lp =
+      meta.last_page ??
+      raw?.last_page ??
+      1;
+    const pp =
+      meta.per_page ??
+      raw?.per_page ??
+      fallbackPerPage;
+    const total =
+      meta.total ??
+      raw?.total ??
+      (Array.isArray(raw?.data) ? raw.data.length : 0);
+
+    return {
+      current_page: Number(cp) || 1,
+      last_page: Number(lp) || 1,
+      per_page: Number(pp) || fallbackPerPage,
+      total: Number(total) || 0,
+    };
+  };
+
+  const loadComments = async (page = 1) => {
+    setLoadingComments(true);
+    try {
+      const res = await LeadsApi.listComments(id, { page, perPage: 10 });
+      const items = res?.data ?? res?.items ?? [];
+      const meta = normalizeMeta(res, 10);
+      setComments(items);
+      setCommentsMeta(meta);
+    } catch (e) {
+      console.error(e);
+      SweetAlert.error("Failed to load comments");
+      setComments([]);
+      setCommentsMeta({ current_page: 1, last_page: 1, per_page: 10, total: 0 });
+    } finally {
+      setLoadingComments(false);
+    }
+  };
 
   /* ---------------- Contacts: Actions ---------------- */
   const openAddContact = () => {
@@ -131,7 +178,7 @@ export default function LeadContactPage() {
         updated[currentContactIndex] = contactForm;
       }
       setContacts(updated);
-      await LeadsApi.createContact(id, updated); // uses your existing API signature
+      await LeadsApi.createContact(id, updated); // your existing API signature
       setIsEditing(false);
       SweetAlert.success("Contact saved");
     } catch (err) {
@@ -186,21 +233,7 @@ export default function LeadContactPage() {
     }
   };
 
-  /* ---------------- Comments: API + Actions ---------------- */
-  const loadComments = async (page = 1) => {
-    setLoadingComments(true);
-    try {
-      const res = await LeadsApi.listComments(id, { page, perPage: 10 });
-      setComments(res?.data || []);
-      setCommentsMeta(res?.meta || null);
-    } catch (e) {
-      console.error(e);
-      SweetAlert.error("Failed to load comments");
-    } finally {
-      setLoadingComments(false);
-    }
-  };
-
+  /* ---------------- Comments: Actions ---------------- */
   const submitNewComment = async (e) => {
     e.preventDefault();
     if (!newComment.trim()) return SweetAlert.error("Write a comment first");
@@ -208,8 +241,8 @@ export default function LeadContactPage() {
     try {
       await LeadsApi.addComment(id, { comment: newComment.trim() });
       setNewComment("");
-      // Reload first page (assuming newest first)
-      await loadComments(1);
+      // Go to first page to see newest (assuming API sorts newest first)
+      setCommentsPage(1);
       SweetAlert.success("Comment added");
     } catch (err) {
       console.error(err);
@@ -231,6 +264,10 @@ export default function LeadContactPage() {
       await LeadsApi.removeComment(id, commentId);
       // Optimistic update
       setComments((prev) => prev.filter((c) => c.id !== commentId));
+      // Optionally, if page could become empty, refresh:
+      // if (comments.length === 1 && commentsMeta?.current_page > 1) {
+      //   setCommentsPage((p) => p - 1);
+      // }
       SweetAlert.success("Comment deleted");
     } catch (err) {
       console.error(err);
@@ -291,7 +328,9 @@ export default function LeadContactPage() {
             onNewCommentChange={setNewComment}
             onSubmit={submitNewComment}
             onDelete={deleteComment}
-            onPageChange={loadComments}
+            currentPage={commentsMeta?.current_page ?? 1}
+            lastPage={commentsMeta?.last_page ?? 1}
+            onPageChange={setCommentsPage}
           />
         </>
       )}
@@ -518,27 +557,22 @@ function ProductsSection({
 function CommentsSection({
   loading,
   comments = [],
-  meta, // Laravel paginator meta or null
+  meta, // { current_page, last_page, total, per_page }
   newComment,
   onNewCommentChange,
   onSubmit,
   onDelete,
+  currentPage = 1,
+  lastPage = 1,
   onPageChange,
 }) {
-  const currentPage = meta?.current_page ?? 1;
-  const lastPage = meta?.last_page ?? 1;
-
   return (
     <section className="mt-10 rounded-lg bg-white p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-xl font-semibold">Comments</h2>
-        {meta ? (
-          <div className="text-sm text-gray-500">
-            Page {currentPage} of {lastPage} • {meta?.total ?? comments.length} total
-          </div>
-        ) : (
-          <div className="text-sm text-gray-500">{comments.length} total</div>
-        )}
+        <div className="text-sm text-gray-500">
+          Page {currentPage} of {lastPage} • {meta?.total ?? comments.length} total
+        </div>
       </div>
 
       {/* Add comment */}
@@ -563,7 +597,7 @@ function CommentsSection({
 
       {/* Comments list */}
       <div className="rounded-lg border border-gray-100">
-        {loading ? (
+        {loading && comments.length === 0 ? (
           <div className="px-4 py-6 text-center text-gray-500">Loading comments…</div>
         ) : comments.length ? (
           <ul className="divide-y">
@@ -594,11 +628,11 @@ function CommentsSection({
       </div>
 
       {/* Pagination */}
-      {meta && lastPage > 1 && (
+      {lastPage > 1 && (
         <div className="mt-4 flex items-center justify-between">
           <button
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-            disabled={currentPage <= 1}
+            disabled={currentPage <= 1 || loading}
             className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
             Previous
@@ -608,7 +642,7 @@ function CommentsSection({
           </div>
           <button
             onClick={() => onPageChange(Math.min(lastPage, currentPage + 1))}
-            disabled={currentPage >= lastPage}
+            disabled={currentPage >= lastPage || loading}
             className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
           >
             Next

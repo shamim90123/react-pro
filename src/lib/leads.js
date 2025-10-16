@@ -44,11 +44,23 @@ export const LeadsApi = {
    * @param {string|number} leadId
    * @param {{ page?: number, perPage?: number }} opts
    */
-  listComments: async (leadId, { page = 1, perPage = 10 } = {}) => {
-    const url = COMMENT_BASE.replace("{leadId}", leadId);
-    const res = await api.get(url, { params: { page, per_page: perPage } });
-    return res.data; // paginator with data, meta, links
-  },
+ listComments: async (leadId, { page = 1, perPage = 10 } = {}) => {
+  const url = COMMENT_BASE.replace("{leadId}", leadId);
+  const res = await api.get(url, { params: { page, per_page: perPage } });
+
+  // Laravel usually: { data: [...], meta: {...}, links: {...} }
+  // But sometimes meta can be at root or camelCased via resources.
+  const raw = res.data || {};
+  const items = raw.data ?? raw.items ?? [];
+  const meta  = raw.meta ?? {
+    current_page: raw.current_page ?? 1,
+    last_page:    raw.last_page ?? 1,
+    per_page:     raw.per_page ?? perPage,
+    total:        raw.total ?? items.length,
+  };
+
+  return { data: items, meta };
+},
 
   /**
    * Add a new comment to a lead.
