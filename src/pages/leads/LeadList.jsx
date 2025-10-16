@@ -4,12 +4,17 @@ import { LeadsApi } from "@/lib/leads"; // Assuming you have this API
 
 export default function LeadList() {
 
+  const navigate = useNavigate();
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showLeadForm, setShowLeadForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
   const [form, setForm] = useState({
     lead_name: "",
     destination_id: "",
     city: "",
   });
-  const [submitting, setSubmitting] = useState(false);
   
   const updateForm = (key, value) => setForm((prev) => ({ ...prev, [key]: value }));
 
@@ -28,11 +33,6 @@ export default function LeadList() {
       setSubmitting(false);
     }
   };
-
-  const navigate = useNavigate();
-  const [leads, setLeads] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [showLeadForm, setShowLeadForm] = useState(false);
 
   // Fetch all leads
   const fetchLeads = async () => {
@@ -186,20 +186,21 @@ export default function LeadList() {
                   <td className="px-6 py-3">{lead.city}</td>
                   <td className="px-6 py-3">{lead.created_at?.slice(0, 10) || <span className="text-gray-400">—</span>}</td>
                   <td className="px-6 py-3 text-right space-x-2">
-                    <button
-                      onClick={() => handleEditLead(lead.id)}
-                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition"
-                    >
-                      <i className="fa-solid fa-pen text-xs"></i>
-                      Edit
-                    </button>
-
+                   
                     <button
                       onClick={() => handleViewLead(lead.id)}
                       className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-green-600 bg-green-50 rounded-md hover:bg-green-100 transition"
                     >
                       <i className="fa-solid fa-eye text-xs"></i>
                       View
+                    </button>
+
+                    <button
+                      onClick={() => handleEditLead(lead.id)}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition"
+                    >
+                      <i className="fa-solid fa-pen text-xs"></i>
+                      Edit
                     </button>
 
                     <button
