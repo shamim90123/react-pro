@@ -5,7 +5,7 @@ import { ProductsApi } from "@/lib/products";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 
 /* =========================================================
-   Lead Contact Page
+   Lead Contact Page (with Comments)
 ========================================================= */
 export default function LeadContactPage() {
   const { id } = useParams();
@@ -30,19 +30,35 @@ export default function LeadContactPage() {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [selectedProductIds, setSelectedProductIds] = useState(new Set()); // Set<number|string>
 
+  // -------- Comments --------
+  const [comments, setComments] = useState([]);
+  const [commentsMeta, setCommentsMeta] = useState(null); // paginator meta or null
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [addingComment, setAddingComment] = useState(false);
+  const [newComment, setNewComment] = useState("");
+
   // Derived
   const allSelected = useMemo(
     () => products.length > 0 && selectedProductIds.size === products.length,
     [products, selectedProductIds]
   );
 
-  /* ---------------- API: Load Lead + Contacts ---------------- */
+  /* ---------------- API: Load Lead + Contacts (+ maybe comments) ---------------- */
   useEffect(() => {
     (async () => {
       try {
         const leadData = await LeadsApi.get(id);
         setLead(leadData);
         setContacts(leadData.contacts || []);
+
+        // If your show() returns comments inline, use them.
+        if (Array.isArray(leadData.comments)) {
+          setComments(leadData.comments);
+          setCommentsMeta(null);
+        } else {
+          // Otherwise, load comments paginated
+          await loadComments(1);
+        }
 
         // Pre-select already linked products if available in response
         const prelinked = leadData.product_ids || [];
@@ -52,6 +68,7 @@ export default function LeadContactPage() {
         SweetAlert.error("Failed to load lead");
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   /* ---------------- API: Load Products ---------------- */
@@ -114,7 +131,7 @@ export default function LeadContactPage() {
         updated[currentContactIndex] = contactForm;
       }
       setContacts(updated);
-      await LeadsApi.createContact(id, updated);
+      await LeadsApi.createContact(id, updated); // uses your existing API signature
       setIsEditing(false);
       SweetAlert.success("Contact saved");
     } catch (err) {
@@ -160,11 +177,64 @@ export default function LeadContactPage() {
       });
       if (!result.isConfirmed) return;
 
+      // Assumes you’ve implemented this in LeadsApi
       await LeadsApi.assignProducts(id, Array.from(selectedProductIds));
       SweetAlert.success("Products saved");
     } catch (e) {
       console.error(e);
       SweetAlert.error("Failed to save products");
+    }
+  };
+
+  /* ---------------- Comments: API + Actions ---------------- */
+  const loadComments = async (page = 1) => {
+    setLoadingComments(true);
+    try {
+      const res = await LeadsApi.listComments(id, { page, perPage: 10 });
+      setComments(res?.data || []);
+      setCommentsMeta(res?.meta || null);
+    } catch (e) {
+      console.error(e);
+      SweetAlert.error("Failed to load comments");
+    } finally {
+      setLoadingComments(false);
+    }
+  };
+
+  const submitNewComment = async (e) => {
+    e.preventDefault();
+    if (!newComment.trim()) return SweetAlert.error("Write a comment first");
+    setAddingComment(true);
+    try {
+      await LeadsApi.addComment(id, { comment: newComment.trim() });
+      setNewComment("");
+      // Reload first page (assuming newest first)
+      await loadComments(1);
+      SweetAlert.success("Comment added");
+    } catch (err) {
+      console.error(err);
+      SweetAlert.error("Failed to add comment");
+    } finally {
+      setAddingComment(false);
+    }
+  };
+
+  const deleteComment = async (commentId) => {
+    const confirm = await SweetAlert.confirm({
+      title: "Delete this comment?",
+      text: "This action cannot be undone.",
+      confirmButtonText: "Delete",
+    });
+    if (!confirm.isConfirmed) return;
+
+    try {
+      await LeadsApi.removeComment(id, commentId);
+      // Optimistic update
+      setComments((prev) => prev.filter((c) => c.id !== commentId));
+      SweetAlert.success("Comment deleted");
+    } catch (err) {
+      console.error(err);
+      SweetAlert.error("Failed to delete comment");
     }
   };
 
@@ -211,6 +281,18 @@ export default function LeadContactPage() {
             onToggleAll={toggleAllProducts}
             onSave={saveSelectedProducts}
           />
+
+          {/* Comments */}
+          <CommentsSection
+            loading={loadingComments || addingComment}
+            comments={comments}
+            meta={commentsMeta}
+            newComment={newComment}
+            onNewCommentChange={setNewComment}
+            onSubmit={submitNewComment}
+            onDelete={deleteComment}
+            onPageChange={loadComments}
+          />
         </>
       )}
     </div>
@@ -249,7 +331,7 @@ function LeadHeader({ lead, onAddContact }) {
       <div className="mt-4 flex justify-end">
         <button
           onClick={onAddContact}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
+          className="rounded-lg bg-[#282560] px-4 py-2 text-sm text-white transition-colors hover:opacity-90"
         >
           + Add Contact
         </button>
@@ -432,6 +514,111 @@ function ProductsSection({
   );
 }
 
+/** Comments section (list + form + pagination) */
+function CommentsSection({
+  loading,
+  comments = [],
+  meta, // Laravel paginator meta or null
+  newComment,
+  onNewCommentChange,
+  onSubmit,
+  onDelete,
+  onPageChange,
+}) {
+  const currentPage = meta?.current_page ?? 1;
+  const lastPage = meta?.last_page ?? 1;
+
+  return (
+    <section className="mt-10 rounded-lg bg-white p-6 shadow-sm">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-xl font-semibold">Comments</h2>
+        {meta ? (
+          <div className="text-sm text-gray-500">
+            Page {currentPage} of {lastPage} • {meta?.total ?? comments.length} total
+          </div>
+        ) : (
+          <div className="text-sm text-gray-500">{comments.length} total</div>
+        )}
+      </div>
+
+      {/* Add comment */}
+      <form onSubmit={onSubmit} className="mb-6">
+        <textarea
+          value={newComment}
+          onChange={(e) => onNewCommentChange(e.target.value)}
+          placeholder="Write a comment..."
+          rows={3}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2"
+        />
+        <div className="mt-3 flex justify-end">
+          <button
+            type="submit"
+            disabled={loading}
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? "Adding…" : "Add Comment"}
+          </button>
+        </div>
+      </form>
+
+      {/* Comments list */}
+      <div className="rounded-lg border border-gray-100">
+        {loading ? (
+          <div className="px-4 py-6 text-center text-gray-500">Loading comments…</div>
+        ) : comments.length ? (
+          <ul className="divide-y">
+            {comments.map((c) => (
+              <li key={c.id} className="px-4 py-3">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="text-sm text-gray-600">
+                      <b>{c?.user?.name ?? "User"}</b>{" "}
+                      <span className="text-gray-400">• {formatDateTime(c.created_at)}</span>
+                    </div>
+                    <p className="mt-1 whitespace-pre-wrap text-gray-800">{c.comment}</p>
+                  </div>
+                  <button
+                    onClick={() => onDelete(c.id)}
+                    className="text-sm text-red-600 hover:underline"
+                    title="Delete"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="px-4 py-6 text-center text-gray-500">No comments yet.</div>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {meta && lastPage > 1 && (
+        <div className="mt-4 flex items-center justify-between">
+          <button
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage <= 1}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Previous
+          </button>
+          <div className="text-sm text-gray-600">
+            {currentPage} / {lastPage}
+          </div>
+          <button
+            onClick={() => onPageChange(Math.min(lastPage, currentPage + 1))}
+            disabled={currentPage >= lastPage}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Next
+          </button>
+        </div>
+      )}
+    </section>
+  );
+}
+
 /** Small controlled input helper */
 function Input({ value, onChange, placeholder }) {
   return (
@@ -442,4 +629,14 @@ function Input({ value, onChange, placeholder }) {
       className="w-full rounded-lg border border-gray-300 px-3 py-2"
     />
   );
+}
+
+/** tiny helper for readable timestamps */
+function formatDateTime(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString();
+  } catch {
+    return iso ?? "";
+  }
 }
