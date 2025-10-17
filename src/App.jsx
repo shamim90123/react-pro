@@ -33,11 +33,14 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+
           <Route path="/lead-list" element={<LeadList />} />
           <Route path="/leads/:id/edit" element={<LeadContactPage />} />
+
           <Route path="/user-list" element={<UserList />} />
           <Route path="/user/new" element={<UserFormPage />} />
           <Route path="/user/:id/edit" element={<UserFormPage />} />
+          
           {/* product setup route */}
           <Route path="/product-setup" element={<ProductList />} />
           <Route path="/product/new" element={<ProductFormPage />} />
