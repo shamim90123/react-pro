@@ -1,4 +1,4 @@
-// src/router/PublicOnlyRoute.jsx
+// src/routes/PublicOnlyRoute.jsx
 import { Outlet, Navigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
