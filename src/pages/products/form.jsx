@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ProductsApi } from "@/lib/products"; // Import Products API
+import { ProductsApi } from "@/services/products"; // Import Products API
 
 const ProductFormPage = () => {
   const { id } = useParams(); // For editing a product

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SweetAlert } from "@/components/ui/SweetAlert";
-import { ProductsApi } from "@/lib/products"; // Import Products API
+import { ProductsApi } from "@/services/products"; // Import Products API
 
 export default function ProductList() {
   const navigate = useNavigate();

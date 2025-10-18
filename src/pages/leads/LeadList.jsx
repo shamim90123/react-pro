@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { LeadsApi } from "@/lib/leads";
+import { LeadsApi } from "@/services/leads";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 
 export default function LeadList() {

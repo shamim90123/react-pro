@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { SweetAlert } from "@/components/ui/SweetAlert";
-import { UsersApi } from "@/lib/users"; // must expose list({page, per_page, q}) and remove(id)
+import { UsersApi } from "@/services/users"; // must expose list({page, per_page, q}) and remove(id)
 
 export default function UserList() {
   const navigate = useNavigate();

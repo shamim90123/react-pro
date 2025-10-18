@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { LeadsApi } from "@/lib/leads";
-import { ProductsApi } from "@/lib/products";
+import { LeadsApi } from "@/services/leads";
+import { ProductsApi } from "@/services/products";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 
 import LeadHeader from "@/components/leads/LeadHeader";

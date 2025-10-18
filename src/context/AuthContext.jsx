@@ -1,6 +1,6 @@
 // src/context/AuthContext.jsx
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import { tokenStore } from "@/lib/token";
+import { tokenStore } from "@/services/token";
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);

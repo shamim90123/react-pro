@@ -1,5 +1,5 @@
 // src/lib/users.js
-import api from "@/lib/api";
+import api from "@/services/api";
 const BASE = "/api/v1/users";
 
 export const UsersApi = {

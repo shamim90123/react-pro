@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { LeadStageApi } from "@/lib/lead_stages"; // Import Products API
+import { LeadStageApi } from "@/services/lead_stages"; // Import Products API
 
 const ProductFormPage = () => {
   const { id } = useParams(); // For editing a lead stage

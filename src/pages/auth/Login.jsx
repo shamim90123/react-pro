@@ -1,7 +1,7 @@
 // src/pages/auth/Login.jsx
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import api from "@/lib/api";
+import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 

@@ -1,7 +1,7 @@
 // src/pages/users/form.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { UsersApi } from "@/lib/users";
+import { UsersApi } from "@/services/users";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 
 const ROLES = [
