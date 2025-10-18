@@ -1,4 +1,4 @@
-// components/Sidebar.jsx
+// components/layout/Sidebar.jsx
 import { NavLink, useLocation, Link } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
 
@@ -47,7 +47,8 @@ export default function Sidebar({ open, onClose }) {
         id="app-sidebar"
         aria-label="Sidebar"
         className={`fixed md:static z-50 md:z-30 h-[calc(100dvh-56px)] md:h-[calc(100dvh-56px)]
-        top-14 md:top-auto left-0 w-64 bg-white border-r border-gray-200
+        top-14 md:top-auto left-0 w-64 
+        bg-[var(--color-background)] border-r border-gray-200 dark:border-gray-700
         transform transition-transform md:translate-x-0
         ${open ? "translate-x-0" : "-translate-x-full md:translate-x-0"}`}
       >
@@ -60,7 +61,9 @@ export default function Sidebar({ open, onClose }) {
               end
               className={({ isActive }) =>
                 `flex items-center gap-3 px-3 py-2 rounded-lg text-sm
-                 ${isActive ? "bg-[#282560]/10 text-[#282560] font-medium" : "text-gray-700 hover:bg-gray-100"}`
+                 ${isActive
+                  ? "bg-[#282560]/10 text-[#282560] font-medium"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"}`
               }
             >
               <span className="text-base">{item.icon}</span>

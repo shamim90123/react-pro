@@ -4,7 +4,7 @@ import ProtectedRoute from "@/routes/ProtectedRoute";
 import PublicOnlyRoute from "@/routes/PublicOnlyRoute";
 
 import Login from "@/pages/auth/Login.jsx";
-import Dashboard from "@/Dashboard.jsx";
+import Dashboard from "@/pages/Dashboard.jsx";
 
 // Leads
 import LeadList from "@/pages/leads/LeadList.jsx";

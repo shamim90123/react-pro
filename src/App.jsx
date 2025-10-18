@@ -1,6 +1,6 @@
 // src/App.jsx
 import { Navigate, useRoutes } from "react-router-dom";
-import { appRoutes } from "@/routes/routes";
+import { appRoutes } from "@/routes/AppRoutes";
 
 export default function App() {
   const routes = useRoutes([
