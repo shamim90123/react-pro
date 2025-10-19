@@ -38,7 +38,7 @@ export default function UserFormPage() {
         });
       } catch (e) {
         SweetAlert.error(e?.message || "Failed to load user");
-        navigate("/user-list", { replace: true });
+        navigate("/users", { replace: true });
       } finally {
         setLoading(false);
       }
@@ -68,7 +68,7 @@ export default function UserFormPage() {
         await UsersApi.create(form);
         SweetAlert.success("User created");
       }
-      navigate("/user-list", { replace: true });
+      navigate("/users", { replace: true });
     } catch (e) {
       SweetAlert.error(e?.data?.message || e?.message || "Save failed");
     } finally {
@@ -154,7 +154,7 @@ export default function UserFormPage() {
         <div className="pt-4 flex justify-end gap-3">
           <button
             type="button"
-            onClick={() => navigate("/user-list")}
+            onClick={() => navigate("/users")}
             className="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50"
           >
             Cancel

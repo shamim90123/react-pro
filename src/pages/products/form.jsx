@@ -43,7 +43,7 @@ const ProductFormPage = () => {
         await ProductsApi.create(form); 
       }
 
-      navigate("/product-setup"); // Navigate back to the product list page
+      navigate("/products"); // Navigate back to the product list page
     } catch (error) {
       console.error("Error saving product:", error);
       alert("Error saving product");

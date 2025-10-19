@@ -1,0 +1,22 @@
+@import "tailwindcss";
+
+
+/* Custom global styles */
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #111827;
+}
+
+a {
+  color: #282560;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: none;
+}

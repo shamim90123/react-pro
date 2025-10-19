@@ -67,7 +67,7 @@ export default function LeadStageList() {
         <div className="flex items-center gap-3 w-full sm:w-auto">
        
           <button
-            onClick={() => navigate("/lead-stage/new")}
+            onClick={() => navigate("/lead-stages/new")}
             className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg"
           >
             + Add Lead Stage
@@ -100,7 +100,7 @@ export default function LeadStageList() {
                   <td className="px-6 py-3 text-right">
                     <button
                       className="text-blue-600 hover:underline text-sm mr-3"
-                      onClick={() => navigate(`/lead-stage/${LeadStage.id}/edit`)}
+                      onClick={() => navigate(`/lead-stages/${LeadStage.id}/edit`)}
                     >
                       Edit
                     </button>

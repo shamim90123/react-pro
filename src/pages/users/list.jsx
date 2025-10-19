@@ -106,7 +106,7 @@ export default function UserList() {
           </div>
 
           <button
-            onClick={() => navigate("/user/new")}
+            onClick={() => navigate("/users/new")}
             className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg active:scale-[.99]"
           >
             + Add User
@@ -165,7 +165,7 @@ export default function UserList() {
                       <td className="px-6 py-3 text-right whitespace-nowrap">
                         <button
                           className="inline-flex items-center justify-center h-8 px-3 text-sm text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md mr-2"
-                          onClick={() => navigate(`/user/${u.id}/edit`)}
+                          onClick={() => navigate(`/users/${u.id}/edit`)}
                         >
                           Edit
                         </button>

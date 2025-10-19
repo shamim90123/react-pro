@@ -8,7 +8,7 @@ export default function LeadHeader({ lead }) {
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-3xl font-semibold text-gray-800">{lead.lead_name}</h1>
         <button
-          onClick={() => navigate("/lead-list")} // 🔹 update this route if your list path is different
+          onClick={() => navigate("/leads")} // 🔹 update this route if your list path is different
           className="rounded-lg bg-gray-200 px-4 py-2 text-sm text-gray-800 transition-colors hover:bg-gray-300"
         >
           ← Back to List

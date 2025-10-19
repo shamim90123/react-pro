@@ -66,7 +66,7 @@ export default function ProductList() {
         <h1 className="text-2xl font-semibold text-gray-800">Product List</h1>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <button
-            onClick={() => navigate("/product/new")}
+            onClick={() => navigate("/products/new")}
             className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg"
           >
             + Add Product
@@ -99,7 +99,7 @@ export default function ProductList() {
                   <td className="px-6 py-3 text-right">
                     <button
                       className="text-blue-600 hover:underline text-sm mr-3"
-                      onClick={() => navigate(`/product/${product.id}/edit`)}
+                      onClick={() => navigate(`/products/${product.id}/edit`)}
                     >
                       Edit
                     </button>
