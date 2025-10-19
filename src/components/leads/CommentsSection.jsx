@@ -166,8 +166,8 @@ export default function CommentsSection({
                     <button
                       onClick={async () => {
                         if (deletingId) return;
-                        const ok = window.confirm("Delete this comment?");
-                        if (!ok) return;
+                        // const ok = window.confirm("Delete this comment?");
+                        // if (!ok) return;
                         try {
                           setDeletingId(c.id);
                           await onDelete(c.id);
