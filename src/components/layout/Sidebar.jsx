@@ -63,7 +63,7 @@ export default function Sidebar({ open, onClose }) {
                 `flex items-center gap-3 px-3 py-2 rounded-lg text-sm
                  ${isActive
                   ? "bg-[#282560]/10 text-[#282560] font-medium"
-                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"}`
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-100"}`
               }
             >
               <span className="text-base">{item.icon}</span>
