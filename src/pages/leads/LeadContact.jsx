@@ -324,7 +324,7 @@ const toggleAllProducts = () => {
       <section className="mb-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">
-            Lead Contacts
+            University Contacts
             {refreshingContacts ? (
               <span className="ml-2 text-sm text-gray-500">(refreshing...)</span>
             ) : null}

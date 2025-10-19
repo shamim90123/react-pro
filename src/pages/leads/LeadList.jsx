@@ -116,12 +116,12 @@ export default function LeadList() {
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-gray-800">Lead List</h1>
+        <h1 className="text-2xl font-semibold text-gray-800">University List</h1>
         <button
           onClick={toggleLeadForm}
           className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
         >
-          + Add Lead
+          + Add University
         </button>
       </div>
 
@@ -143,7 +143,7 @@ export default function LeadList() {
         <table className="min-w-full text-left text-sm text-gray-700">
           <thead className="bg-gray-100 text-xs font-semibold uppercase text-gray-600">
             <tr>
-              <th className="px-6 py-3">Lead Name</th>
+              <th className="px-6 py-3">University Name</th>
               <th className="px-6 py-3">City</th>
               <th className="px-6 py-3">Created At</th>
               <th className="px-6 py-3 text-right">Actions</th>
@@ -218,7 +218,7 @@ function LeadForm({ form, submitting, onChange, onCancel, onSubmit }) {
         <input
           value={form.lead_name}
           onChange={(e) => onChange("lead_name", e.target.value)}
-          placeholder="Lead Name"
+          placeholder="Uni Name"
           className="w-full rounded-lg border border-gray-300 px-5 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
           required
         />
