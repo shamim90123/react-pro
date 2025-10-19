@@ -29,13 +29,14 @@ export default function ContactsTable({ contacts = [], onEdit, onMakePrimary, on
                 <td className="px-4 py-3 font-medium text-gray-800">
                   <div className="flex items-center gap-2">
                     <span>{c.name}</span>
-                    {c.is_primary && (
+                    {Number(c.is_primary) === 1 && (
                       <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 border border-green-200">
                         Primary
                       </span>
                     )}
                   </div>
                 </td>
+
 
                 {/* Other columns */}
                 <td className="px-4 py-3">{c.email || "—"}</td>
