@@ -1,10 +1,6 @@
 // src/lib/leads.js
 import api from "./api";
 
-// const BASE = "/api/v1/leads";
-// const CONTACT_BASE = "/api/v1/leads/{leadId}/contacts"; // Contact API endpoint
-// const COMMENT_BASE = "/api/v1/leads/{leadId}/comments";  // Comment API endpoint
-
 const BASE = "/api/v1/leads";
 const CONTACT_BASE = "/api/v1/leads/{leadId}/contacts";
 const COMMENT_BASE = "/api/v1/leads/{leadId}/comments";
@@ -17,8 +13,7 @@ export const LeadsApi = {
     const res = await api.get(BASE, { params: { page, per_page: perPage, ...(q ? { q } : {}) } });
     return res.data; // Laravel paginator (data, meta, links)
   },
-
-  // Fetch a specific lead by ID (includes contacts & comments if your show() loads them)
+  
   get: async (id) => {
     const res = await api.get(`${BASE}/${id}`);
     return res.data;
@@ -96,15 +91,13 @@ export const LeadsApi = {
     return res.status === 204 ? null : res.data;
   },
 
-    assignProducts: async (leadId, productIds = []) => {
+  assignProducts: async (leadId, productIds = []) => {
     const res = await api.put(`${BASE}/${leadId}/products`, {
       product_ids: productIds,
     });
     return res.data; // { message, data: [...] }
   },
 
-  
-  // Optional: fetch already-linked products (pre-select in UI)
   getProducts: async (leadId) => {
     const res = await api.get(`${BASE}/${leadId}/products`);
     return res.data; // { data: [...] }
