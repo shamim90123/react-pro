@@ -22,13 +22,24 @@ export default function LeadContactPage() {
   const [currentContactIndex, setCurrentContactIndex] = useState(null);
   const [contactSubmitting, setContactSubmitting] = useState(false);
   const [contactForm, setContactForm] = useState({
-    name: "", email: "", phone: "", job_title: "", department: "", primary_status: "",
+    name: "",
+    email: "",
+    phone: "",
+    job_title: "",
+    department: "",
+    primary_status: "",
+    id: null,
+    lead_id: null,
   });
 
   // Products
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [selectedProductIds, setSelectedProductIds] = useState(new Set());
+
+  // UI helpers
+  const [deletingId, setDeletingId] = useState(null);
+  const [refreshingContacts, setRefreshingContacts] = useState(false);
 
   // Comments (via hook)
   const {
@@ -46,21 +57,28 @@ export default function LeadContactPage() {
     [products, selectedProductIds]
   );
 
-  // Load lead + contacts
+  // ---------- Helper: reload lead + contacts from API ----------
+  const reloadContacts = async (silent = true) => {
+    if (!silent) setRefreshingContacts(true);
+    try {
+      const leadData = await LeadsApi.get(id);
+      setLead(leadData);
+      setContacts(leadData.contacts || []);
+      // Keep products selection in sync with lead if backend returns product_ids
+      const prelinked = leadData.product_ids || [];
+      setSelectedProductIds(new Set(prelinked));
+    } catch (e) {
+      console.error(e);
+      SweetAlert.error("Failed to refresh contacts");
+    } finally {
+      if (!silent) setRefreshingContacts(false);
+    }
+  };
+
+  // Initial load
   useEffect(() => {
-    (async () => {
-      try {
-        const leadData = await LeadsApi.get(id);
-        setLead(leadData);
-        setContacts(leadData.contacts || []);
-        const prelinked = leadData.product_ids || [];
-        setSelectedProductIds(new Set(prelinked));
-      } catch (e) {
-        console.error(e);
-        SweetAlert.error("Failed to load lead");
-      }
-    })();
-  }, [id]);
+    reloadContacts(false);
+  }, [id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load products
   useEffect(() => {
@@ -78,11 +96,20 @@ export default function LeadContactPage() {
     })();
   }, []);
 
-  // Contacts handlers
+  // ---------- Contacts handlers ----------
   const openAddContact = () => {
     setIsEditing(true);
     setCurrentContactIndex(null);
-    setContactForm({ name: "", email: "", phone: "", job_title: "", department: "", primary_status: "" });
+    setContactForm({
+      name: "",
+      email: "",
+      phone: "",
+      job_title: "",
+      department: "",
+      primary_status: "",
+      id: null,
+      lead_id: id,
+    });
   };
 
   const openEditContact = (index) => {
@@ -97,33 +124,101 @@ export default function LeadContactPage() {
       job_title: c.job_title || "",
       department: c.department || "",
       primary_status: c.primary_status || "",
+      id: c.id || null,
+      lead_id: id || null,
     });
   };
 
-  const onContactField = (field, value) => setContactForm((s) => ({ ...s, [field]: value }));
+  const onContactField = (field, value) =>
+    setContactForm((s) => ({ ...s, [field]: value }));
 
   const submitContact = async (e) => {
     e.preventDefault();
     setContactSubmitting(true);
     try {
+      // Optimistic local update (optional)
       let updated = [];
-      if (currentContactIndex === null) updated = [...contacts, contactForm];
-      else {
+      if (currentContactIndex === null) {
+        updated = [...contacts, contactForm];
+      } else {
         updated = [...contacts];
         updated[currentContactIndex] = contactForm;
       }
       setContacts(updated);
+
+      // Persist to API (your endpoint accepts full array)
       await LeadsApi.createContact(id, updated);
+
+      // Pull the canonical list from server
+      await reloadContacts(true);
+
       setIsEditing(false);
       SweetAlert.success("Contact saved");
     } catch (err) {
       console.error(err);
       SweetAlert.error("Failed to save contact");
+      // Roll back to server state
+      await reloadContacts(true);
     } finally {
       setContactSubmitting(false);
     }
   };
 
+  const onMakePrimary = async (contact) => {
+    try {
+      // Optimistic: mark selected as primary locally
+      setContacts((prev) =>
+        prev.map((c) => ({ ...c, is_primary: c.id === contact.id }))
+      );
+
+      await LeadsApi.setPrimaryContact(contact.id);
+
+      // Ensure single-primary state from backend (and any extra fields)
+      await reloadContacts(true);
+
+      SweetAlert.success("Primary contact updated.");
+    } catch (e) {
+      console.error(e);
+      SweetAlert.error("Failed to update primary contact");
+      await reloadContacts(true);
+    }
+  };
+
+  const onDeleteContact = async (contact) => {
+    if (deletingId === contact.id) return;
+
+    const res = await SweetAlert.confirm({
+      title: `Delete contact?`,
+      text: `“${contact.name}” will be permanently removed.`,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+    });
+    if (!res.isConfirmed) return;
+
+    try {
+      setDeletingId(contact.id);
+
+      // Optimistic remove
+      setContacts((prev) => prev.filter((c) => c.id !== contact.id));
+
+      await LeadsApi.removeContact(contact.id);
+
+      // In case backend auto-promoted a fallback primary
+      await reloadContacts(true);
+
+      SweetAlert.success("Contact deleted.");
+    } catch (e) {
+      console.error(e);
+      SweetAlert.error(
+        e?.response?.data?.message || e?.message || "Failed to delete contact."
+      );
+      await reloadContacts(true);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  // ---------- Products ----------
   const saveSelectedProducts = async () => {
     try {
       const result = await SweetAlert.confirm({
@@ -132,6 +227,7 @@ export default function LeadContactPage() {
         confirmButtonText: "Save",
       });
       if (!result.isConfirmed) return;
+
       await LeadsApi.assignProducts(id, Array.from(selectedProductIds));
       SweetAlert.success("Products saved");
     } catch (e) {
@@ -153,9 +249,12 @@ export default function LeadContactPage() {
     else setSelectedProductIds(new Set(products.map((p) => p.id)));
   };
 
-  if (!lead) return <div className="p-6">
-      <UISkeleton count={15} height={20} style={{ marginTop: 10 }} />
-    </div>;
+  if (!lead)
+    return (
+      <div className="p-6">
+        <UISkeleton count={15} height={20} style={{ marginTop: 10 }} />
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -164,7 +263,12 @@ export default function LeadContactPage() {
       {/* Contacts */}
       <section className="mb-8">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Lead Contacts</h2>
+          <h2 className="text-xl font-semibold">
+            Lead Contacts
+            {refreshingContacts ? (
+              <span className="ml-2 text-sm text-gray-500">(refreshing...)</span>
+            ) : null}
+          </h2>
           <button
             onClick={openAddContact}
             className="rounded-lg bg-[#282560] px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
@@ -174,7 +278,12 @@ export default function LeadContactPage() {
         </div>
 
         {contacts?.length ? (
-          <ContactsTable contacts={contacts} onEdit={openEditContact} />
+          <ContactsTable
+            contacts={contacts}
+            onEdit={openEditContact}
+            onMakePrimary={onMakePrimary}
+            onDelete={onDeleteContact}
+          />
         ) : (
           <p className="mb-6">
             No contacts available. Click <b>“Add Contact”</b> to add one.
@@ -191,7 +300,6 @@ export default function LeadContactPage() {
           />
         )}
       </section>
-
 
       {/* Products */}
       <ProductsSection

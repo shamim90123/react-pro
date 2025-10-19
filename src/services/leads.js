@@ -1,9 +1,16 @@
 // src/lib/leads.js
 import api from "./api";
 
+// const BASE = "/api/v1/leads";
+// const CONTACT_BASE = "/api/v1/leads/{leadId}/contacts"; // Contact API endpoint
+// const COMMENT_BASE = "/api/v1/leads/{leadId}/comments";  // Comment API endpoint
+
 const BASE = "/api/v1/leads";
-const CONTACT_BASE = "/api/v1/leads/{leadId}/contacts"; // Contact API endpoint
-const COMMENT_BASE = "/api/v1/leads/{leadId}/comments";  // Comment API endpoint
+const CONTACT_BASE = "/api/v1/leads/{leadId}/contacts";
+const COMMENT_BASE = "/api/v1/leads/{leadId}/comments";
+
+// flat contact endpoints
+const CONTACTS_FLAT = "/api/v1/contacts";
 
 export const LeadsApi = {
   list: async ({ page = 1, perPage = 10, q = "" } = {}) => {
@@ -30,12 +37,17 @@ export const LeadsApi = {
   // ----- Contacts -----
   createContact: async (leadId, payload) => {
     const res = await api.post(CONTACT_BASE.replace("{leadId}", leadId), payload);
-    return res.data;
+    return res.data; // array of contacts returned
   },
 
-  removeContact: async (leadId, contactId) => {
-    const res = await api.delete(`${CONTACT_BASE.replace("{leadId}", leadId)}/${contactId}`);
-    return res.status === 204 ? null : res.data;
+  removeContact: async (contactId) => {
+    await api.delete(`${CONTACTS_FLAT}/${contactId}`);
+    return null; // 204
+  },
+  
+  setPrimaryContact: async (contactId) => {
+    const res = await api.post(`${CONTACTS_FLAT}/${contactId}/primary`);
+    return res.data;
   },
 
   // ----- Comments -----

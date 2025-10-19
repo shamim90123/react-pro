@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+// --- Utils ---
 function formatDateTime(iso) {
   try {
     const d = new Date(iso);
@@ -7,6 +8,18 @@ function formatDateTime(iso) {
   } catch {
     return iso ?? "";
   }
+}
+
+function avatarInitial(name) {
+  if (!name) return "U";
+  const parts = String(name).trim().split(" ").filter(Boolean);
+  const first = parts[0]?.[0] ?? "";
+  const last = parts.length > 1 ? parts[parts.length - 1][0] : "";
+  return (first + last).toUpperCase();
+}
+
+function clamp(n, min, max) {
+  return Math.max(min, Math.min(max, n));
 }
 
 export default function CommentsSection({
@@ -17,94 +30,206 @@ export default function CommentsSection({
   onPageChange,       // (n) => void
   onAdd,              // (text) => Promise<void>
   onDelete,           // (id) => Promise<void>
+  maxLength = 1000,   // optional, for counter
 }) {
   const [text, setText] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+  const remaining = useMemo(() => maxLength - (text?.length || 0), [text, maxLength]);
+  const canSubmit = !loading && !submitting && text.trim().length > 0 && remaining >= 0;
+
+  const textareaRef = useRef(null);
+
+  // Submit handler with optimistic UX
+  const handleAdd = async (e) => {
+    e?.preventDefault?.();
+    if (!canSubmit) return;
+    setSubmitting(true);
+    const val = text.trim();
+    try {
+      await onAdd(val);
+      setText("");
+      // refocus for quick successive comments
+      textareaRef.current?.focus();
+    } catch (err) {
+      // no-op: parent shows toast
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Keyboard: Ctrl/Cmd + Enter to submit
+  const onKeyDown = (e) => {
+    const hotkey = (e.ctrlKey || e.metaKey) && e.key === "Enter";
+    if (hotkey && canSubmit) handleAdd(e);
+  };
+
+  // Compact pagination builder with ellipsis
+  const lastPage = meta?.last_page ?? 1;
+  const current = clamp(page ?? 1, 1, lastPage);
+
+  const pageItems = useMemo(() => {
+    const pages = [];
+    const push = (p) => pages.push(p);
+
+    if (lastPage <= 7) {
+      for (let i = 1; i <= lastPage; i++) push(i);
+    } else {
+      const addRange = (s, e) => { for (let i = s; i <= e; i++) push(i); };
+      push(1);
+      if (current > 4) push("…");
+      addRange(Math.max(2, current - 1), Math.min(lastPage - 1, current + 1));
+      if (current < lastPage - 3) push("…");
+      push(lastPage);
+    }
+    return pages;
+  }, [current, lastPage]);
 
   return (
-    <section className="mt-10 rounded-lg bg-white p-6 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Comments</h2>
+    <section className="mt-10 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+      {/* Header */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-xl font-semibold text-gray-800">Comments</h2>
         <div className="text-sm text-gray-500">
           Page {meta?.current_page ?? 1} of {meta?.last_page ?? 1} • {meta?.total ?? comments.length} total
         </div>
       </div>
 
-      {/* Add comment */}
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          await onAdd(text);
-          setText("");
-        }}
-        className="mb-6"
-      >
+      {/* Composer */}
+      <form onSubmit={handleAdd} className="mb-5 rounded-lg border border-gray-200 bg-gray-50 p-3">
         <textarea
+          ref={textareaRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Write a comment..."
+          onKeyDown={onKeyDown}
+          placeholder="Write a comment…  (Ctrl/⌘ + Enter to submit)"
           rows={3}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2"
+          className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none"
+          maxLength={maxLength}
         />
-        <div className="mt-3 flex justify-end">
+        <div className="mt-2 flex items-center justify-between text-xs">
+          <span className="text-gray-500">
+            {remaining >= 0 ? `${remaining} characters left` : <span className="text-red-600">{-remaining} over limit</span>}
+          </span>
           <button
             type="submit"
-            disabled={loading}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={!canSubmit}
+            className="rounded-md bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Adding…" : "Add Comment"}
+            {submitting ? "Adding…" : "Add Comment"}
           </button>
         </div>
       </form>
 
-      {/* Comments list */}
-      <div className="rounded-lg border border-gray-100">
+      {/* List */}
+      <div className="rounded-lg border border-gray-200">
         {loading && comments.length === 0 ? (
-          <div className="px-4 py-6 text-center text-gray-500">Loading comments…</div>
+          <div className="space-y-3 p-4">
+            {[...Array(3)].map((_, i) => (
+              <div
+                key={i}
+                className={`rounded-md p-3 ${i % 2 === 0 ? "bg-gray-50" : "bg-white"}`}
+              >
+                <div className="mb-2 flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-gray-200" />
+                  <div className="h-3 w-40 animate-pulse rounded bg-gray-200" />
+                </div>
+                <div className="h-3 w-full animate-pulse rounded bg-gray-200" />
+              </div>
+            ))}
+          </div>
         ) : comments.length ? (
           <ul className="divide-y">
-            {comments.map((c) => (
-              <li key={c.id} className="px-4 py-3">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="text-sm text-gray-600">
-                      <b>{c?.user?.name ?? "User"}</b>{" "}
-                      <span className="text-gray-400">• {formatDateTime(c.created_at)}</span>
+            {comments.map((c, idx) => {
+              const striped = idx % 2 === 0 ? "bg-gray-50" : "bg-white";
+              const userName = c?.user?.name ?? "User";
+              return (
+                <li key={c.id} className={`${striped} px-4 py-3`}>
+                  <div className="flex items-start justify-between gap-4">
+                    {/* Left: avatar + content */}
+                    <div className="flex min-w-0 items-start gap-3">
+                      <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-indigo-600 text-xs font-semibold text-white">
+                        {avatarInitial(userName)}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-x-2 text-xs text-gray-600">
+                          <b className="text-gray-800">{userName}</b>
+                          <span className="text-gray-400">• {formatDateTime(c.created_at)}</span>
+                        </div>
+                        <p className="mt-1 whitespace-pre-wrap text-sm text-gray-800 break-words">
+                          {c.comment}
+                        </p>
+                      </div>
                     </div>
-                    <p className="mt-1 whitespace-pre-wrap text-gray-800">{c.comment}</p>
+
+                    {/* Right: delete */}
+                    <button
+                      onClick={async () => {
+                        if (deletingId) return;
+                        const ok = window.confirm("Delete this comment?");
+                        if (!ok) return;
+                        try {
+                          setDeletingId(c.id);
+                          await onDelete(c.id);
+                        } finally {
+                          setDeletingId(null);
+                        }
+                      }}
+                      disabled={deletingId === c.id || loading}
+                      className="rounded-md px-2 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                      title="Delete"
+                    >
+                      {deletingId === c.id ? "Deleting…" : "Delete"}
+                    </button>
                   </div>
-                  <button
-                    onClick={() => onDelete(c.id)}
-                    className="text-sm text-red-600 hover:underline"
-                    title="Delete"
-                  >
-                    Delete
-                  </button>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         ) : (
-          <div className="px-4 py-6 text-center text-gray-500">No comments yet.</div>
+          <div className="px-6 py-10 text-center text-gray-500">
+            No comments yet. Be the first to add one.
+          </div>
         )}
       </div>
 
       {/* Pagination */}
-      {(meta?.last_page ?? 1) > 1 && (
-        <div className="mt-4 flex items-center justify-between">
+      {lastPage > 1 && (
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
           <button
-            onClick={() => onPageChange(Math.max(1, page - 1))}
-            disabled={page <= 1 || loading}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => onPageChange(clamp(current - 1, 1, lastPage))}
+            disabled={current <= 1 || loading}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Previous
           </button>
-          <div className="text-sm text-gray-600">
-            {page} / {meta?.last_page}
+
+          <div className="flex items-center gap-1">
+            {pageItems.map((p, i) =>
+              p === "…" ? (
+                <span key={`e-${i}`} className="px-2 text-sm text-gray-500">…</span>
+              ) : (
+                <button
+                  key={p}
+                  onClick={() => onPageChange(p)}
+                  disabled={p === current || loading}
+                  className={[
+                    "min-w-8 rounded-md px-2.5 py-1.5 text-sm",
+                    p === current
+                      ? "bg-indigo-600 font-semibold text-white"
+                      : "border border-gray-300 text-gray-700 hover:bg-gray-50",
+                  ].join(" ")}
+                >
+                  {p}
+                </button>
+              )
+            )}
           </div>
+
           <button
-            onClick={() => onPageChange(Math.min(meta.last_page, page + 1))}
-            disabled={page >= meta.last_page || loading}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => onPageChange(clamp(current + 1, 1, lastPage))}
+            disabled={current >= lastPage || loading}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60"
           >
             Next
           </button>

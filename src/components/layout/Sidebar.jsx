@@ -9,7 +9,7 @@ const navItems = [
 ];
 
 const configurationChildren = [
-  { to: "/products", label: "Product Setup", icon: "🛠️" },
+  { to: "/products", label: "Products", icon: "🛠️" },
   { to: "/lead-stages", label: "Lead Stages", icon: "📊" },
 ];
 
