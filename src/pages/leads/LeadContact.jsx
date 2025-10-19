@@ -14,7 +14,7 @@ import UISkeleton from "@/components/ui/UISkeleton";
 
 export default function LeadContactPage() {
   const { id } = useParams();
-
+const normId = (v) => String(v);
   // Lead & Contacts
   const [lead, setLead] = useState(null);
   const [contacts, setContacts] = useState([]);
@@ -58,22 +58,22 @@ export default function LeadContactPage() {
   );
 
   // ---------- Helper: reload lead + contacts from API ----------
-  const reloadContacts = async (silent = true) => {
-    if (!silent) setRefreshingContacts(true);
-    try {
-      const leadData = await LeadsApi.get(id);
-      setLead(leadData);
-      setContacts(leadData.contacts || []);
-      // Keep products selection in sync with lead if backend returns product_ids
-      const prelinked = leadData.product_ids || [];
-      setSelectedProductIds(new Set(prelinked));
-    } catch (e) {
-      console.error(e);
-      SweetAlert.error("Failed to refresh contacts");
-    } finally {
-      if (!silent) setRefreshingContacts(false);
-    }
-  };
+// when reloading lead (if backend returns product_ids)
+const reloadContacts = async (silent = true) => {
+  if (!silent) setRefreshingContacts(true);
+  try {
+    const leadData = await LeadsApi.get(id);
+    setLead(leadData);
+    setContacts(leadData.contacts || []);
+    const prelinked = (leadData.product_ids || []).map(normId);
+    setSelectedProductIds(new Set(prelinked));
+  } catch (e) {
+    console.error(e);
+    SweetAlert.error("Failed to refresh contacts");
+  } finally {
+    if (!silent) setRefreshingContacts(false);
+  }
+};
 
   // Initial load
   useEffect(() => {
@@ -82,19 +82,26 @@ export default function LeadContactPage() {
 
   // Load products
   useEffect(() => {
-    (async () => {
-      setLoadingProducts(true);
-      try {
-        const res = await ProductsApi.list({ page: 1, perPage: 100 });
-        setProducts(res?.data || res || []);
-      } catch (e) {
-        console.error(e);
-        SweetAlert.error("Failed to load products");
-      } finally {
-        setLoadingProducts(false);
-      }
-    })();
-  }, []);
+  (async () => {
+    setLoadingProducts(true);
+    try {
+      const res = await ProductsApi.list({ page: 1, perPage: 100 });
+
+      const items =
+        Array.isArray(res?.data) ? res.data :
+        Array.isArray(res?.data?.data) ? res.data.data :
+        Array.isArray(res) ? res : [];
+
+      setProducts(items);
+    } catch (e) {
+      console.error(e);
+      SweetAlert.error("Failed to load products");
+    } finally {
+      setLoadingProducts(false);
+    }
+  })();
+}, []);
+
 
   // ---------- Contacts handlers ----------
   const openAddContact = () => {
@@ -164,15 +171,25 @@ export default function LeadContactPage() {
     }
   };
 
-  useEffect(() => {
+//   useEffect(() => {
+//   (async () => {
+//     try {
+//       const res = await LeadsApi.getProducts(id);
+//       const preselected = new Set((res?.data || []).map(p => p.id));
+//       setSelectedProductIds(preselected);
+//     } catch (e) {
+//       console.error(e);
+//     }
+//   })();
+// }, [id]);
+
+useEffect(() => {
   (async () => {
     try {
       const res = await LeadsApi.getProducts(id);
-      const preselected = new Set((res?.data || []).map(p => p.id));
+      const preselected = new Set((res?.data || res || []).map(p => normId(p.id)));
       setSelectedProductIds(preselected);
-    } catch (e) {
-      console.error(e);
-    }
+    } catch (e) { console.error(e); }
   })();
 }, [id]);
 
@@ -231,7 +248,7 @@ export default function LeadContactPage() {
   };
 
   // ---------- Products ----------
-  const saveSelectedProducts = async () => {
+const saveSelectedProducts = async () => {
   try {
     const result = await SweetAlert.confirm({
       title: "Save Product Selections?",
@@ -240,7 +257,19 @@ export default function LeadContactPage() {
     });
     if (!result.isConfirmed) return;
 
-    await LeadsApi.assignProducts(id, Array.from(selectedProductIds));
+    const savedIds = Array.from(selectedProductIds); // already normalized
+    await LeadsApi.assignProducts(id, savedIds);
+
+    // Re-fetch the canonical list from server (in case backend transforms it)
+    try {
+      const res = await LeadsApi.getProducts(id);
+      const fresh = new Set((res?.data || res || []).map(p => normId(p.id)));
+      setSelectedProductIds(fresh);
+    } catch {
+      // fallback: at least keep what we just saved
+      setSelectedProductIds(new Set(savedIds));
+    }
+
     SweetAlert.success("Products saved");
   } catch (e) {
     console.error(e);
@@ -249,18 +278,36 @@ export default function LeadContactPage() {
 };
 
 
-  const toggleProduct = (productId) => {
-    setSelectedProductIds((prev) => {
-      const next = new Set(prev);
-      next.has(productId) ? next.delete(productId) : next.add(productId);
-      return next;
-    });
-  };
 
-  const toggleAllProducts = () => {
-    if (allSelected) setSelectedProductIds(new Set());
-    else setSelectedProductIds(new Set(products.map((p) => p.id)));
-  };
+  // const toggleProduct = (productId) => {
+  //   setSelectedProductIds((prev) => {
+  //     const next = new Set(prev);
+  //     next.has(productId) ? next.delete(productId) : next.add(productId);
+  //     return next;
+  //   });
+  // };
+
+  // const toggleAllProducts = () => {
+  //   if (allSelected) setSelectedProductIds(new Set());
+  //   else setSelectedProductIds(new Set(products.map((p) => p.id)));
+  // };
+
+  // toggles
+const toggleProduct = (productId) => {
+  const pid = normId(productId);
+  setSelectedProductIds((prev) => {
+    const next = new Set(prev);
+    next.has(pid) ? next.delete(pid) : next.add(pid);
+    return next;
+  });
+};
+
+const toggleAllProducts = () => {
+  // If you want "select all visible" instead of all products, use `filtered`
+  // Otherwise keep using all `products`:
+  if (allSelected) setSelectedProductIds(new Set());
+  else setSelectedProductIds(new Set(products.map(p => normId(p.id))));
+};
 
   if (!lead)
     return (

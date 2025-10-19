@@ -104,7 +104,9 @@ export default function ProductsSection({
             ))
           : filtered.length > 0
           ? filtered.map((p) => {
-              const checked = selectedIds.has(p.id);
+              // const checked = selectedIds.has(p.id);
+              const checked = selectedIds.has(String(p.id));
+
               return (
                 <label
                   key={p.id}
