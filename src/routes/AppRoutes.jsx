@@ -8,7 +8,7 @@ import Dashboard from "@/pages/Dashboard.jsx";
 
 // Leads
 import LeadList from "@/pages/leads/LeadList.jsx";
-import LeadContactPage from "@/pages/leads/LeadContact.jsx";
+import LeadContactPage from "@/pages/leads/LeadView.jsx";
 
 // Users
 import UserList from "@/pages/users/list.jsx";
