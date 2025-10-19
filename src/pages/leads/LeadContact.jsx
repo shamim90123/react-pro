@@ -164,6 +164,18 @@ export default function LeadContactPage() {
     }
   };
 
+  useEffect(() => {
+  (async () => {
+    try {
+      const res = await LeadsApi.getProducts(id);
+      const preselected = new Set((res?.data || []).map(p => p.id));
+      setSelectedProductIds(preselected);
+    } catch (e) {
+      console.error(e);
+    }
+  })();
+}, [id]);
+
   const onMakePrimary = async (contact) => {
     try {
       // Optimistic: mark selected as primary locally
@@ -220,21 +232,22 @@ export default function LeadContactPage() {
 
   // ---------- Products ----------
   const saveSelectedProducts = async () => {
-    try {
-      const result = await SweetAlert.confirm({
-        title: "Save Product Selections?",
-        text: "These products will be linked to the lead.",
-        confirmButtonText: "Save",
-      });
-      if (!result.isConfirmed) return;
+  try {
+    const result = await SweetAlert.confirm({
+      title: "Save Product Selections?",
+      text: "These products will be linked to the lead.",
+      confirmButtonText: "Save",
+    });
+    if (!result.isConfirmed) return;
 
-      await LeadsApi.assignProducts(id, Array.from(selectedProductIds));
-      SweetAlert.success("Products saved");
-    } catch (e) {
-      console.error(e);
-      SweetAlert.error("Failed to save products");
-    }
-  };
+    await LeadsApi.assignProducts(id, Array.from(selectedProductIds));
+    SweetAlert.success("Products saved");
+  } catch (e) {
+    console.error(e);
+    SweetAlert.error("Failed to save products");
+  }
+};
+
 
   const toggleProduct = (productId) => {
     setSelectedProductIds((prev) => {

@@ -95,4 +95,18 @@ export const LeadsApi = {
     const res = await api.delete(url);
     return res.status === 204 ? null : res.data;
   },
+
+    assignProducts: async (leadId, productIds = []) => {
+    const res = await api.put(`${BASE}/${leadId}/products`, {
+      product_ids: productIds,
+    });
+    return res.data; // { message, data: [...] }
+  },
+
+  
+  // Optional: fetch already-linked products (pre-select in UI)
+  getProducts: async (leadId) => {
+    const res = await api.get(`${BASE}/${leadId}/products`);
+    return res.data; // { data: [...] }
+  },
 };
