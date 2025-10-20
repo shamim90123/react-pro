@@ -102,4 +102,9 @@ export const LeadsApi = {
     const res = await api.get(`${BASE}/${leadId}/products`);
     return res.data; // { data: [...] }
   },
+
+  getCountries: async () => {
+    const res = await api.get(`/api/v1/countries`);
+    return res.data; // { data: [...] }
+  }
 };

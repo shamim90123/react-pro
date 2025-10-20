@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LeadsApi } from "@/services/leads";
 import { SweetAlert } from "@/components/ui/SweetAlert";
+import Select from 'react-select'
+import CountrySelect from "@/components/ui/CountrySelect";
 
 export default function LeadList() {
   // -------------------- Router --------------------
@@ -9,6 +11,7 @@ export default function LeadList() {
 
   // -------------------- State --------------------
   const [leads, setLeads] = useState([]);
+  const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -18,6 +21,7 @@ export default function LeadList() {
     destination_id: "",
     city: "",
   });
+  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
 
   // -------------------- Helpers --------------------
   const updateForm = (key, value) =>
@@ -34,6 +38,18 @@ export default function LeadList() {
     try {
       const res = await LeadsApi.list({ page: 1, perPage: 10 });
       setLeads(res.data || []);
+    } catch (err) {
+      console.error("Error fetching leads", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCountries = async () => {
+    setLoading(true);
+    try {
+      const res = await LeadsApi.getCountries();
+      setCountries(res.data || []);
     } catch (err) {
       console.error("Error fetching leads", err);
     } finally {
@@ -86,6 +102,7 @@ export default function LeadList() {
   // -------------------- Effects --------------------
   useEffect(() => {
     fetchLeads();
+    fetchCountries();
   }, []);
 
   // -------------------- Handlers --------------------
@@ -134,6 +151,10 @@ export default function LeadList() {
             onChange={updateForm}
             onCancel={toggleLeadForm}
             onSubmit={handleSubmit}
+            countries={countries}
+            isSearchable={true}
+            selectedCountry={selectedCountry}
+            setSelectedCountry={setSelectedCountry}
           />
         </div>
       )}
@@ -208,7 +229,7 @@ export default function LeadList() {
 
 /* ==================== Sub-Components ==================== */
 
-function LeadForm({ form, submitting, onChange, onCancel, onSubmit }) {
+function LeadForm({ form, submitting, onChange, onCancel, onSubmit, countries }) {
   return (
     <form
       onSubmit={onSubmit}
@@ -219,7 +240,7 @@ function LeadForm({ form, submitting, onChange, onCancel, onSubmit }) {
           value={form.lead_name}
           onChange={(e) => onChange("lead_name", e.target.value)}
           placeholder="Uni Name"
-          className="w-full rounded-lg border border-gray-300 px-5 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
+          className="h-10 w-full rounded-lg border border-gray-300 px-4 outline-none focus:ring-2 focus:ring-indigo-500"
           required
         />
       </div>
@@ -229,22 +250,19 @@ function LeadForm({ form, submitting, onChange, onCancel, onSubmit }) {
           value={form.city}
           onChange={(e) => onChange("city", e.target.value)}
           placeholder="City"
-          className="w-full rounded-lg border border-gray-300 px-5 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
+          className="h-10 w-full rounded-lg border border-gray-300 px-4 outline-none focus:ring-2 focus:ring-indigo-500"
           required
         />
       </div>
 
       <div className="min-w-[200px] flex-1">
-        <select
-          value={form.destination_id}
-          onChange={(e) => onChange("destination_id", e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-5 py-3 outline-none focus:ring-2 focus:ring-indigo-500"
-          required
-        >
-          <option value="">Select Destination</option>
-          <option value="1">Destination 1</option>
-          <option value="2">Destination 2</option>
-        </select>
+
+        <CountrySelect
+          countries={countries}
+          valueId={form.destination_id}
+          onChangeId={(v) => onChange("destination_id", v)}
+        />
+       
       </div>
 
       <div className="flex items-center gap-3">

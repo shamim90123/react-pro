@@ -24,7 +24,7 @@ export default function LeadHeader({ lead }) {
         <div className="rounded-lg border border-gray-100 bg-gray-50 p-4">
           <p className="text-xs uppercase text-gray-500">Destination</p>
           <p className="mt-1 text-sm font-medium text-gray-800">
-            {lead.destination || "—"}
+            {lead.destination?.name ?? "—"}
           </p>
         </div>
 
