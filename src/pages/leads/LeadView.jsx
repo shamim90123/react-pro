@@ -352,6 +352,16 @@ export default function LeadContactPage() {
           </button>
         </div>
 
+        {isEditing && (
+          <ContactForm
+            form={contactForm}
+            submitting={contactSubmitting}
+            onFieldChange={onContactField}
+            onCancel={() => setIsEditing(false)}
+            onSubmit={submitContact}
+          />
+        )}
+
         {contacts?.length ? (
           <ContactsTable
             contacts={contacts}
@@ -365,15 +375,6 @@ export default function LeadContactPage() {
           </p>
         )}
 
-        {isEditing && (
-          <ContactForm
-            form={contactForm}
-            submitting={contactSubmitting}
-            onFieldChange={onContactField}
-            onCancel={() => setIsEditing(false)}
-            onSubmit={submitContact}
-          />
-        )}
       </section>
 
       {/* Products */}

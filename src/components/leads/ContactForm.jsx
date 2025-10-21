@@ -90,7 +90,7 @@ export default function ContactForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+      className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm mb-8"
     >
       {/* Hidden ids for edit mode */}
       <input type="hidden" name="id" value={form.id ?? ""} />

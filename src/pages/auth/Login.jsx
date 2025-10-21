@@ -48,7 +48,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 text-gray-900">
       <div className="bg-[#F9F7F1] rounded-3xl shadow-lg w-full max-w-md p-8">
         <div className="text-center mb-8">
-          <img src="img/logo.png" alt="Logo" className="mx-auto h-16 w-auto mb-2" />
+          <img src="img/logo.png" alt="Logo" className="mx-auto h-16 w-auto mb-2 text-gray-900" />
           <p className="text-gray-500 mt-2 text-sm">Please login to continue</p>
         </div>
 

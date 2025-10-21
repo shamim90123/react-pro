@@ -7,7 +7,20 @@ export default function LeadHeader({ lead }) {
     <div className="mb-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
       {/* Header Row */}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold text-gray-800">
+        <h1 className="text-2xl font-semibold text-gray-800 flex items-center gap-2">
+          {/* Flag before lead name */}
+          {lead?.destination?.iso_3166_2 && (
+            <img
+              src={`/flags/1x1/${lead.destination.iso_3166_2.toLowerCase()}.svg`}
+              alt={lead?.destination?.name || "Flag"}
+              title={lead?.destination?.name || ""}
+              className="h-6 w-6 rounded-full object-cover"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "/img/no-img.png";
+              }}
+            />
+          )}
           {lead.lead_name || "Unnamed Lead"}
         </h1>
 
@@ -18,6 +31,7 @@ export default function LeadHeader({ lead }) {
           ← Back to List
         </button>
       </div>
+
 
       {/* Lead Info */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

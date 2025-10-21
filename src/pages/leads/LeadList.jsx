@@ -136,7 +136,7 @@ export default function LeadList() {
         <h1 className="text-2xl font-semibold text-gray-800">University List</h1>
         <button
           onClick={toggleLeadForm}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
+          className="rounded-lg bg-[#282560] hover:bg-[#1f1c4d] px-4 py-2 text-sm text-white transition-colors"
         >
           + Add University
         </button>
@@ -184,7 +184,22 @@ export default function LeadList() {
                     className="cursor-pointer px-6 py-3 font-medium text-gray-900 hover:underline"
                     onClick={() => handleViewLead(lead.id)}
                   >
-                    {lead.lead_name}
+                    <div className="flex items-center gap-2">
+                      <img
+                        src={`/flags/1x1/${lead?.destination?.iso_3166_2?.toLowerCase() || "unknown"}.svg`}
+                        alt={lead?.destination?.name || "Flag"}
+                        title={lead?.destination?.name || ""}
+                        className="rounded-full h-5 w-5 object-cover"
+                        onError={(e) => {
+                          // prevent infinite loop if fallback also fails
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/img/no-img.png"; // make sure this exists
+                        }}
+                      />
+                      <span className="font-medium text-gray-900">{lead?.lead_name}</span>
+                    </div>
+
+
                   </td>
                   <td className="px-6 py-3">{lead.city || "—"}</td>
                   <td className="px-6 py-3">{formatDate(lead.created_at)}</td>
@@ -239,7 +254,7 @@ function LeadForm({ form, submitting, onChange, onCancel, onSubmit, countries })
         <input
           value={form.lead_name}
           onChange={(e) => onChange("lead_name", e.target.value)}
-          placeholder="Uni Name"
+          placeholder="University Name"
           className="h-10 w-full rounded-lg border border-gray-300 px-4 outline-none focus:ring-2 focus:ring-indigo-500"
           required
         />
@@ -279,7 +294,7 @@ function LeadForm({ form, submitting, onChange, onCancel, onSubmit, countries })
           className={`rounded-lg px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors duration-200 ${
             submitting
               ? "cursor-not-allowed bg-blue-300"
-              : "bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-200"
+              : "bg-[#282560] hover:bg-[#1f1c4d] focus:ring-4 focus:ring-blue-200"
           }`}
         >
           {submitting ? "Saving…" : form.lead_id ? "Update" : "Save"}
