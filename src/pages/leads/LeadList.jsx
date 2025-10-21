@@ -181,7 +181,7 @@ export default function LeadList() {
                   className="border-b border-gray-100 bg-white hover:bg-gray-50"
                 >
                   <td
-                    className="cursor-pointer px-6 py-3 font-medium text-gray-900 hover:underline"
+                    className="cursor-pointer px-6 py-3 font-medium text-gray-900"
                     onClick={() => handleViewLead(lead.id)}
                   >
                     <div className="flex items-center gap-2">
