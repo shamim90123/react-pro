@@ -34,7 +34,7 @@ export default function Overview() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {/* Leads */}
         <div className="rounded-2xl border border-gray-200 bg-indigo-100 p-5 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="text-sm font-medium text-indigo-800">Total Leads</div>
+          <div className="text-sm font-medium text-indigo-800">Total Universities  </div>
           <div className="mt-1 text-3xl font-bold text-indigo-900">
             <Fmt value={stats.leads} />
           </div>

@@ -2,17 +2,18 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/context/ThemeContext"; // ✅ import theme hook
+import { useTheme } from "@/context/ThemeContext";
 
 export default function Header({ onToggleSidebar }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
   const btnRef = useRef(null);
+  const firstItemRef = useRef(null);
   const navigate = useNavigate();
-  const { logout } = useAuth();
-  const { theme, toggleTheme } = useTheme(); // ✅ use theme context
+  const { logout, user } = useAuth() || {};
+  const { theme /*, toggleTheme*/ } = useTheme();
 
-  // Close menu on outside click / Esc
+  // Close on outside click / Esc
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!menuOpen) return;
@@ -34,10 +35,43 @@ export default function Header({ onToggleSidebar }) {
     };
   }, [menuOpen]);
 
+  // Simple keyboard nav (Up/Down)
+  useEffect(() => {
+    const onKey = (e) => {
+      if (!menuOpen || !menuRef.current) return;
+      const items = Array.from(
+        menuRef.current.querySelectorAll('[role="menuitem"]')
+      );
+      if (!items.length) return;
+
+      const idx = items.findIndex((el) => el === document.activeElement);
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        const next = items[(idx + 1 + items.length) % items.length];
+        next?.focus();
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        const prev = items[(idx - 1 + items.length) % items.length];
+        prev?.focus();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [menuOpen]);
+
+  // Focus first item when opening
+  useEffect(() => {
+    if (menuOpen) setTimeout(() => firstItemRef.current?.focus(), 30);
+  }, [menuOpen]);
+
   const handleLogout = () => {
     logout?.();
     navigate("/login", { replace: true });
   };
+
+  const displayName = user?.name || "John Doe";
+  const displayEmail = user?.email || "john.doe@email.com";
+  const avatar = user?.avatar || "https://i.pravatar.cc/80?img=1";
 
   return (
     <header className="sticky top-0 z-40 bg-[var(--color-background)] border-b border-gray-200">
@@ -45,7 +79,7 @@ export default function Header({ onToggleSidebar }) {
         {/* Mobile: sidebar toggle */}
         <button
           onClick={onToggleSidebar}
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700"
+          className="md:hidden p-2 rounded-lg hover:bg-gray-100"
           aria-label="Toggle sidebar"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
@@ -71,31 +105,13 @@ export default function Header({ onToggleSidebar }) {
 
         {/* Right cluster */}
         <div className="flex items-center gap-3">
-          {/* 🌗 Theme Toggle Button */}
+          {/* Theme toggle left as-is (commented) */}
           {/* <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+            className="p-2 rounded-lg hover:bg-gray-100 transition"
             aria-label="Toggle theme"
           >
-            {theme === "light" ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-800"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M12 3.1a1 1 0 0 1 1 1v1.44a1 1 0 1 1-2 0V4.1a1 1 0 0 1 1-1ZM5.6 5.6a1 1 0 0 1 1.4 0l1.02 1.02a1 1 0 0 1-1.42 1.42L5.6 7a1 1 0 0 1 0-1.4ZM12 6.9a5.1 5.1 0 1 1 0 10.2 5.1 5.1 0 0 1 0-10.2ZM3.1 12a1 1 0 0 1 1-1h1.44a1 1 0 1 1 0 2H4.1a1 1 0 0 1-1-1Zm15.36-7.36a1 1 0 0 1 1.4 1.42L18.84 7a1 1 0 1 1-1.42-1.42l1.04-1.04ZM12 19.9a1 1 0 0 1-1-1v-1.44a1 1 0 1 1 2 0V18.9a1 1 0 0 1-1 1Zm6.36-2.54a1 1 0 0 1 1.42 1.42l-1.04 1.04a1 1 0 1 1-1.42-1.42l1.04-1.04ZM19.9 12a1 1 0 0 1 1-1h1.44a1 1 0 1 1 0 2H20.9a1 1 0 0 1-1-1Z" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 text-gray-100"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-              >
-                <path d="M21.64 13a9 9 0 0 1-11.3-11.3A9 9 0 1 0 21.64 13Z" />
-              </svg>
-            )}
+            {theme === "light" ? "🌞" : "🌙"}
           </button> */}
 
           {/* User Dropdown */}
@@ -103,15 +119,15 @@ export default function Header({ onToggleSidebar }) {
             <button
               ref={btnRef}
               onClick={() => setMenuOpen((v) => !v)}
-              className="flex items-center gap-2 rounded-lg px-1 py-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="group flex items-center gap-2 rounded-lg px-1 py-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               aria-controls="user-menu"
             >
               <img
-                src="https://i.pravatar.cc/40?img=1"
-                alt="User avatar"
-                className="h-8 w-8 rounded-full ring-1 ring-gray-200"
+                src={avatar}
+                alt={`${displayName} avatar`}
+                className="h-8 w-8 rounded-full ring-1 ring-gray-200 transition group-hover:ring-indigo-300"
               />
               <svg
                 className={`h-4 w-4 text-gray-500 transition-transform ${
@@ -119,47 +135,106 @@ export default function Header({ onToggleSidebar }) {
                 }`}
                 viewBox="0 0 20 20"
                 fill="currentColor"
+                aria-hidden="true"
               >
                 <path d="M5.25 7.5L10 12.25L14.75 7.5H5.25Z" />
               </svg>
             </button>
 
-            {menuOpen && (
+            {/* Animated Popover */}
+            <div
+              className={`absolute right-0 z-50 mt-2 w-72 origin-top-right transition-all duration-150 ${
+                menuOpen
+                  ? "scale-100 opacity-100 translate-y-0"
+                  : "pointer-events-none scale-95 opacity-0 -translate-y-1"
+              }`}
+            >
+              {/* caret */}
+              <div className="absolute -top-2 right-6 h-3 w-3 rotate-45 rounded-sm bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.06)]" />
+
               <div
                 ref={menuRef}
                 id="user-menu"
                 role="menu"
                 aria-label="User menu"
-                className="absolute right-0 mt-2 w-56 origin-top-right rounded-xl border border-gray-200 bg-white dark:bg-gray-800 shadow-lg focus:outline-none"
+                className="overflow-hidden rounded-xl border border-gray-200 bg-white/95 backdrop-blur-sm shadow-xl ring-1 ring-black/5"
               >
+                {/* Profile Header */}
+                <div className="relative border-b border-gray-100">
+                  <div className="h-12 bg-gradient-to-r from-indigo-50 via-slate-50 to-emerald-50" />
+                  <div className="px-4 pb-3 -mt-6 flex items-center gap-3">
+                    <img
+                      src={avatar}
+                      alt={`${displayName} avatar`}
+                      className="h-12 w-12 rounded-full border border-white shadow-md"
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-gray-900">
+                        {displayName}
+                      </p>
+                      <p className="truncate text-xs text-gray-500">
+                        {displayEmail}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Menu items */}
                 <div className="py-1">
                   <Link
                     to="/profile"
-                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    role="menuitem"
+                    ref={firstItemRef}
                     onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                    tabIndex={0}
                   >
+                    <span aria-hidden>👤</span>
                     Profile
                   </Link>
+
                   <Link
                     to="/change-password"
-                    className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    role="menuitem"
                     onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                    tabIndex={-1}
                   >
+                    <span aria-hidden>🔒</span>
                     Change Password
                   </Link>
-                  <div className="my-1 border-t border-gray-100 dark:border-gray-700" />
+
+                  <div className="my-1 mx-3 h-px bg-gray-100" />
+
+                  {/* <Link
+                    to="/settings"
+                    role="menuitem"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                    tabIndex={-1}
+                  >
+                    <span aria-hidden>⚙️</span>
+                    Settings
+                  </Link> */}
+
                   <button
                     type="button"
-                    onClick={handleLogout}
-                    className="w-full text-left px-4 py-2 text-sm text-white rounded-b-xl"
-                    style={{ backgroundColor: "#282560" }}
+                    role="menuitem"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 focus:bg-red-50 focus:outline-none"
+                    tabIndex={-1}
                   >
+                    <span aria-hidden>🚪</span>
                     Logout
                   </button>
                 </div>
               </div>
-            )}
+            </div>
           </div>
+          {/* End user dropdown */}
         </div>
       </div>
     </header>

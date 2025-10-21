@@ -4,12 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: "🏠" },
-  { to: "/leads", label: "Leads", icon: "📇" },
+  { to: "/leads", label: "Universities", icon: "🎓" },
   { to: "/users", label: "Users", icon: "👥" },
 ];
 
 const configurationChildren = [
-  { to: "/products", label: "Products", icon: "🛠️" },
+  { to: "/products", label: "Products", icon: "📦" },
   { to: "/lead-stages", label: "Lead Stages", icon: "📊" },
 ];
 
