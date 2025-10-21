@@ -14,6 +14,10 @@ import LeadContactPage from "@/pages/leads/LeadView.jsx";
 import UserList from "@/pages/users/list.jsx";
 import UserFormPage from "@/pages/users/form.jsx";
 
+// Users
+import ImportList from "@/pages/importer/list.jsx";
+import ImportFormPage from "@/pages/importer/form.jsx";
+
 // Products
 import ProductList from "@/pages/products/list.jsx";
 import ProductFormPage from "@/pages/products/form.jsx";
@@ -43,6 +47,12 @@ export const appRoutes = [
           // Leads
           { path: "/leads", element: <LeadList /> },
           { path: "/leads/:id/edit", element: <LeadContactPage /> },
+
+            // import-lead
+          { path: "/import-lead", element: <ImportList /> },
+          { path: "/import-lead/new", element: <ImportFormPage /> },
+          { path: "/import-lead/:id/edit", element: <ImportFormPage /> },
+
 
           // Users
           { path: "/users", element: <UserList /> },

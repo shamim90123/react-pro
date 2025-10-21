@@ -106,5 +106,7 @@ export const LeadsApi = {
   getCountries: async () => {
     const res = await api.get(`/api/v1/countries`);
     return res.data; // { data: [...] }
-  }
+  },
+
+  bulkUpsert: (rows) => api.post("/leads/bulk-upsert", { leads: rows }),
 };
