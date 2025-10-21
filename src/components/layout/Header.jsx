@@ -72,7 +72,7 @@ export default function Header({ onToggleSidebar }) {
         {/* Right cluster */}
         <div className="flex items-center gap-3">
           {/* 🌗 Theme Toggle Button */}
-          <button
+          {/* <button
             onClick={toggleTheme}
             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition"
             aria-label="Toggle theme"
@@ -96,7 +96,7 @@ export default function Header({ onToggleSidebar }) {
                 <path d="M21.64 13a9 9 0 0 1-11.3-11.3A9 9 0 1 0 21.64 13Z" />
               </svg>
             )}
-          </button>
+          </button> */}
 
           {/* User Dropdown */}
           <div className="relative">
