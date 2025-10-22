@@ -8,13 +8,15 @@ import LeadForm from "./LeadForm";
 import RowLoading from "./RowLoading";
 import AccountManagerCell from "./AccountManagerCell";
 import LeadDetailsModal from "./LeadDetailsModal";
+
+
 export default function LeadList() {
   const navigate = useNavigate();
 
   // -------------------- State --------------------
   const [detailsOpen, setDetailsOpen] = useState(false);
-const [detailsLead, setDetailsLead] = useState(null);
-const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
+  const [detailsLead, setDetailsLead] = useState(null);
+  const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [assigning, setAssigning] = useState({}); // { [leadId]: boolean }
@@ -23,6 +25,7 @@ const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
   const [loading, setLoading] = useState(false);
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
   const [form, setForm] = useState({
     lead_id: undefined,
     lead_name: "",
@@ -36,8 +39,6 @@ const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
 
   const resetForm = () =>
     setForm({ lead_id: undefined, lead_name: "", destination_id: "", city: "" });
-
-  const formatDate = (iso) => (iso ? String(iso).slice(0, 10) : "—");
 
   // -------------------- API --------------------
   const fetchLeads = async () => {
@@ -114,7 +115,7 @@ const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
   };
   const closeDetails = () => setDetailsOpen(false);
 
-  const handleSubmit = async (e) => {
+  const handleUniversityFormSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
@@ -160,7 +161,6 @@ const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
     fetchLeads();
     fetchCountries();
     fetchUserList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // -------------------- Handlers --------------------
@@ -208,7 +208,7 @@ const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
             submitting={submitting}
             onChange={updateForm}
             onCancel={toggleLeadForm}
-            onSubmit={handleSubmit}
+            onSubmit={handleUniversityFormSubmit}
             countries={countries}
           />
         </div>
@@ -276,28 +276,28 @@ const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
                     </div>
                   </td>
 
-                <td className="px-6 py-3">
-                <button
-                  className="text-indigo-600 underline-offset-2 hover:underline disabled:text-gray-400"
-                  onClick={() => openDetails(lead, "contacts")}
-                  disabled={!lead.contacts_count}
-                  title="View contacts"
-                >
-                  {lead.contacts_count ?? "—"}
-                </button>
-              </td>
+                  <td className="px-6 py-3">
+                    <button
+                      className="text-indigo-600 underline-offset-2 hover:underline disabled:text-gray-400"
+                      onClick={() => openDetails(lead, "contacts")}
+                      disabled={!lead.contacts_count}
+                      title="View contacts"
+                    >
+                      {lead.contacts_count ?? "—"}
+                    </button>
+                  </td>
 
-              {/* Notes */}
-              <td className="px-6 py-3">
-                <button
-                  className="text-indigo-600 underline-offset-2 hover:underline disabled:text-gray-400"
-                  onClick={() => openDetails(lead, "notes")}
-                  disabled={!lead.notes_count}
-                  title="View notes"
-                >
-                  {lead.notes_count ?? "—"}
-                </button>
-              </td>
+                  {/* Notes */}
+                  <td className="px-6 py-3">
+                    <button
+                      className="text-indigo-600 underline-offset-2 hover:underline disabled:text-gray-400"
+                      onClick={() => openDetails(lead, "notes")}
+                      disabled={!lead.notes_count}
+                      title="View notes"
+                    >
+                      {lead.notes_count ?? "—"}
+                    </button>
+                  </td>
 
              
                   {/* Actions */}
