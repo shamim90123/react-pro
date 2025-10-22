@@ -106,5 +106,15 @@ export const LeadsApi = {
   getCountries: async () => {
     const res = await api.get(`/api/v1/countries`);
     return res.data; // { data: [...] }
-  }
+  },
+
+  // src/lib/leads.js
+  async assignAccountManager(leadId, userId) {
+    // Axios: await the call, use .status/.data, and send JSON directly
+    const res = await api.post(`${BASE}/account-manager/${leadId}`, {
+      user_ids: { user_id: userId ?? null },
+    });
+    return res.data; // <-- Axios response body
+  },
+
 };

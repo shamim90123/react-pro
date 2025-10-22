@@ -13,6 +13,8 @@ export default function LeadList() {
 
   // -------------------- State --------------------
   const [users, setUsers] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
+  const [assigning, setAssigning] = useState({}); // { [leadId]: true/false }
   const [leads, setLeads] = useState([]);
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -47,6 +49,41 @@ export default function LeadList() {
       setLoading(false);
     }
   };
+
+
+  const handleAssignAccountManager = async (leadId, userId) => {
+    setAssigning((m) => ({ ...m, [leadId]: true }));
+    const prevLeads = JSON.parse(JSON.stringify(leads)); // snapshot for revert
+    const normalized = userId === "" || userId == null ? null : Number(userId);
+
+    try {
+      // optimistic UI
+      setLeads((ls) =>
+        ls.map((l) =>
+          l.id === leadId
+            ? {
+                ...l,
+                account_manager_id: normalized,
+                account_manager:
+                  users.find((u) => String(u.id) === String(normalized)) || null,
+              }
+            : l
+        )
+      );
+
+      // ✅ simple call; wrapper builds { user_ids: { user_id } }
+      await LeadsApi.assignAccountManager(leadId, normalized);
+
+      SweetAlert.success("Account manager updated");
+    } catch (e) {
+      console.error(e);
+      setLeads(prevLeads); // revert on failure
+      SweetAlert.error(e?.message || "Could not update account manager");
+    } finally {
+      setAssigning((m) => ({ ...m, [leadId]: false }));
+    }
+  };
+
 
   const fetchUserList = async () => {
     setLoading(true);
@@ -192,55 +229,100 @@ export default function LeadList() {
 
           <tbody>
             {loading ? (
-               <RowLoading colSpan={4} />
+              <RowLoading colSpan={7} />
             ) : hasLeads ? (
               leads.map((lead, i) => (
                 <tr
                   key={lead.id ?? i}
                   className="border-b border-gray-100 bg-white hover:bg-gray-50"
                 >
+                  {/* SL */}
                   <td className="px-4 py-3 text-gray-600">{i + 1}</td>
-                  <td
+
+                  {/* Account Manager dropdown */}
+                  <td className="px-6 py-3">
+                    <div className="min-w-[220px]">
+                      <select
+                        className={`w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60 ${
+                          assigning[lead.id] || usersLoading ? "cursor-not-allowed" : ""
+                        }`}
+                        value={lead.account_manager_id ?? ""} // controlled
+                        onChange={(e) =>
+                          handleAssignAccountManager(lead.id, e.target.value || null)
+                        }
+                        disabled={assigning[lead.id] || usersLoading}
+                      >
+                        <option value="">— Select —</option>
+                        {users.map((u) => (
+                          <option key={u.id} value={u.id}>
+                            {u.name}
+                          </option>
+                        ))}
+                      </select>
+                      {usersLoading && (
+                        <p className="mt-1 text-xs text-gray-400">Loading users…</p>
+                      )}
+                    </div>
+                  </td>
+
+                  {/* University Name (your existing flag + title) */}
+                <td
                     className="cursor-pointer px-6 py-3 font-medium text-gray-900"
                     onClick={() => handleViewLead(lead.id)}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
                       <img
                         src={`/flags/1x1/${lead?.destination?.iso_3166_2?.toLowerCase() || "unknown"}.svg`}
                         alt={lead?.destination?.name || "Flag"}
                         title={lead?.destination?.name || ""}
-                        className="rounded-full h-5 w-5 object-cover"
+                        className="h-5 w-5 rounded-full object-cover"
                         onError={(e) => {
-                          // prevent infinite loop if fallback also fails
                           e.currentTarget.onerror = null;
-                          e.currentTarget.src = "/img/no-img.png"; // make sure this exists
+                          e.currentTarget.src = "/img/no-img.png";
                         }}
                       />
-                      <span className="font-medium text-gray-900">{lead?.lead_name}</span>
+
+                      <div className="flex flex-col leading-tight">
+                        <span className="font-medium text-gray-900">{lead?.lead_name}</span>
+                        <span className="text-xs text-gray-500">{lead?.city || "—"}</span>
+                      </div>
                     </div>
-
-
                   </td>
-                  <td className="px-6 py-3">{lead.city || "—"}</td>
+
+
+                  {/* Contacts (placeholder or real count) */}
+                  <td className="px-6 py-3">
+                    {lead.contacts_count ?? "—"}
+                  </td>
+
+                  {/* Notes (placeholder) */}
+                  <td className="px-6 py-3">
+                    {lead.notes_count ?? "—"}
+                  </td>
+
+                  {/* Created At */}
                   <td className="px-6 py-3">{formatDate(lead.created_at)}</td>
+
+                  {/* Actions */}
                   <td className="space-x-2 px-6 py-3 text-right">
-                     <LeadActions
-                        lead={lead}
-                        handleViewLead={handleViewLead}
-                        handleEditLead={handleEditLead}
-                        handleDeleteLead={handleDeleteLead}
-                      />
+                    <LeadActions
+                      lead={lead}
+                      handleViewLead={handleViewLead}
+                      handleEditLead={handleEditLead}
+                      handleDeleteLead={handleDeleteLead}
+                    />
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={4} className="px-6 py-6 text-center text-gray-500">
+                <td colSpan={7} className="px-6 py-6 text-center text-gray-500">
                   No leads found.
                 </td>
               </tr>
             )}
           </tbody>
+
         </table>
       </div>
     </div>
