@@ -1,6 +1,7 @@
 // src/lib/users.js
 import api from "@/services/api";
 const BASE = "/api/v1/users";
+const UserList = "/api/v1/user-list";
 
 export const UsersApi = {
   create: async (payload) => {
@@ -9,6 +10,10 @@ export const UsersApi = {
   },
   get: async (id) => {
     const { data } = await api.get(`${BASE}/${id}`);
+    return data;
+  },
+  userlist: async () => {
+    const { data } = await api.get(`${UserList}`);
     return data;
   },
   update: async (id, payload) => {

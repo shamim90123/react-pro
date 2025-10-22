@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LeadsApi } from "@/services/leads";
+import { UsersApi } from "@/services/users";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 import Select from 'react-select'
 import CountrySelect from "@/components/ui/CountrySelect";
@@ -11,6 +12,7 @@ export default function LeadList() {
   const navigate = useNavigate();
 
   // -------------------- State --------------------
+  const [users, setUsers] = useState([]);
   const [leads, setLeads] = useState([]);
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -39,6 +41,18 @@ export default function LeadList() {
     try {
       const res = await LeadsApi.list({ page: 1, perPage: 10 });
       setLeads(res.data || []);
+    } catch (err) {
+      console.error("Error fetching leads", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchUserList = async () => {
+    setLoading(true);
+    try {
+      const res = await UsersApi.userlist();
+      setUsers(res.data || []);
     } catch (err) {
       console.error("Error fetching leads", err);
     } finally {
@@ -104,6 +118,7 @@ export default function LeadList() {
   useEffect(() => {
     fetchLeads();
     fetchCountries();
+    fetchUserList();
   }, []);
 
   // -------------------- Handlers --------------------
@@ -165,8 +180,11 @@ export default function LeadList() {
         <table className="min-w-full text-left text-sm text-gray-700">
           <thead className="bg-gray-100 text-xs font-semibold uppercase text-gray-600">
             <tr>
+              <th className="px-4 py-3">SL</th>
+              <th className="px-6 py-3">Account Manager</th>
               <th className="px-6 py-3">University Name</th>
-              <th className="px-6 py-3">City</th>
+              <th className="px-6 py-3">Contacts</th>
+              <th className="px-6 py-3">Notes</th>
               <th className="px-6 py-3">Created At</th>
               <th className="px-6 py-3 text-right">Actions</th>
             </tr>
@@ -176,11 +194,12 @@ export default function LeadList() {
             {loading ? (
                <RowLoading colSpan={4} />
             ) : hasLeads ? (
-              leads.map((lead) => (
+              leads.map((lead, i) => (
                 <tr
-                  key={lead.id}
+                  key={lead.id ?? i}
                   className="border-b border-gray-100 bg-white hover:bg-gray-50"
                 >
+                  <td className="px-4 py-3 text-gray-600">{i + 1}</td>
                   <td
                     className="cursor-pointer px-6 py-3 font-medium text-gray-900"
                     onClick={() => handleViewLead(lead.id)}
