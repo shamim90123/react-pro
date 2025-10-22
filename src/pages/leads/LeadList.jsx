@@ -325,13 +325,13 @@ const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
         </table>
       </div>
 
-        {/* 👇 Add the modal here, at the bottom */}
-    <LeadDetailsModal
-      open={detailsOpen}
-      onClose={closeDetails}
-      lead={detailsLead}
-      initialTab={detailsTab}
-    />
+      {/* 👇 Add the modal here, at the bottom */}
+      <LeadDetailsModal
+        open={detailsOpen}
+        onClose={closeDetails}
+        lead={detailsLead}
+        initialTab={detailsTab}
+      />
     </div>
   );
 }
