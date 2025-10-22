@@ -224,7 +224,6 @@ const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
               <th className="px-6 py-3">University Name</th>
               <th className="px-6 py-3">Contacts</th>
               <th className="px-6 py-3">Notes</th>
-              <th className="px-6 py-3">Created At</th>
               <th className="px-6 py-3 text-right">Actions</th>
             </tr>
           </thead>
@@ -300,9 +299,7 @@ const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
                 </button>
               </td>
 
-                  {/* Created At */}
-                  <td className="px-6 py-3">{formatDate(lead.created_at)}</td>
-
+             
                   {/* Actions */}
                   <td className="space-x-2 px-6 py-3 text-right">
                     <LeadActions
