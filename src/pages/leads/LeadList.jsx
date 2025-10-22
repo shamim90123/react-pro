@@ -7,11 +7,14 @@ import LeadActions from "./LeadActions"; // unchanged
 import LeadForm from "./LeadForm";
 import RowLoading from "./RowLoading";
 import AccountManagerCell from "./AccountManagerCell";
-
+import LeadDetailsModal from "./LeadDetailsModal";
 export default function LeadList() {
   const navigate = useNavigate();
 
   // -------------------- State --------------------
+  const [detailsOpen, setDetailsOpen] = useState(false);
+const [detailsLead, setDetailsLead] = useState(null);
+const [detailsTab, setDetailsTab] = useState("contacts"); // or "notes"
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
   const [assigning, setAssigning] = useState({}); // { [leadId]: boolean }
@@ -103,6 +106,13 @@ export default function LeadList() {
       setLoading(false);
     }
   };
+
+  const openDetails = (lead, tab) => {
+    setDetailsLead(lead);
+    setDetailsTab(tab);
+    setDetailsOpen(true);
+  };
+  const closeDetails = () => setDetailsOpen(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -267,15 +277,28 @@ export default function LeadList() {
                     </div>
                   </td>
 
-                  {/* Contacts */}
-                  <td className="px-6 py-3">
-                    {lead.contacts_count ?? "—"}
-                  </td>
+                <td className="px-6 py-3">
+                <button
+                  className="text-indigo-600 underline-offset-2 hover:underline disabled:text-gray-400"
+                  onClick={() => openDetails(lead, "contacts")}
+                  disabled={!lead.contacts_count}
+                  title="View contacts"
+                >
+                  {lead.contacts_count ?? "—"}
+                </button>
+              </td>
 
-                  {/* Notes */}
-                  <td className="px-6 py-3">
-                    {lead.notes_count ?? "—"}
-                  </td>
+              {/* Notes */}
+              <td className="px-6 py-3">
+                <button
+                  className="text-indigo-600 underline-offset-2 hover:underline disabled:text-gray-400"
+                  onClick={() => openDetails(lead, "notes")}
+                  disabled={!lead.notes_count}
+                  title="View notes"
+                >
+                  {lead.notes_count ?? "—"}
+                </button>
+              </td>
 
                   {/* Created At */}
                   <td className="px-6 py-3">{formatDate(lead.created_at)}</td>
@@ -301,6 +324,14 @@ export default function LeadList() {
           </tbody>
         </table>
       </div>
+
+        {/* 👇 Add the modal here, at the bottom */}
+    <LeadDetailsModal
+      open={detailsOpen}
+      onClose={closeDetails}
+      lead={detailsLead}
+      initialTab={detailsTab}
+    />
     </div>
   );
 }
