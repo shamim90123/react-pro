@@ -3,18 +3,18 @@ import { useNavigate } from "react-router-dom";
 import { LeadsApi } from "@/services/leads";
 import { UsersApi } from "@/services/users";
 import { SweetAlert } from "@/components/ui/SweetAlert";
-import Select from 'react-select'
-import CountrySelect from "@/components/ui/CountrySelect";
-import LeadActions from "./LeadActions";
+import LeadActions from "./LeadActions"; // unchanged
+import LeadForm from "./LeadForm";
+import RowLoading from "./RowLoading";
+import AccountManagerCell from "./AccountManagerCell";
 
 export default function LeadList() {
-  // -------------------- Router --------------------
   const navigate = useNavigate();
 
   // -------------------- State --------------------
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
-  const [assigning, setAssigning] = useState({}); // { [leadId]: true/false }
+  const [assigning, setAssigning] = useState({}); // { [leadId]: boolean }
   const [leads, setLeads] = useState([]);
   const [countries, setCountries] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,6 @@ export default function LeadList() {
     destination_id: "",
     city: "",
   });
-  const [selectedCountry, setSelectedCountry] = useState(countries[0]);
 
   // -------------------- Helpers --------------------
   const updateForm = (key, value) =>
@@ -50,10 +49,9 @@ export default function LeadList() {
     }
   };
 
-
   const handleAssignAccountManager = async (leadId, userId) => {
     setAssigning((m) => ({ ...m, [leadId]: true }));
-    const prevLeads = JSON.parse(JSON.stringify(leads)); // snapshot for revert
+    const prevLeads = JSON.parse(JSON.stringify(leads));
     const normalized = userId === "" || userId == null ? null : Number(userId);
 
     try {
@@ -71,29 +69,26 @@ export default function LeadList() {
         )
       );
 
-      // ✅ simple call; wrapper builds { user_ids: { user_id } }
       await LeadsApi.assignAccountManager(leadId, normalized);
-
       SweetAlert.success("Account manager updated");
     } catch (e) {
       console.error(e);
-      setLeads(prevLeads); // revert on failure
+      setLeads(prevLeads); // revert
       SweetAlert.error(e?.message || "Could not update account manager");
     } finally {
       setAssigning((m) => ({ ...m, [leadId]: false }));
     }
   };
 
-
   const fetchUserList = async () => {
-    setLoading(true);
+    setUsersLoading(true);
     try {
       const res = await UsersApi.userlist();
       setUsers(res.data || []);
     } catch (err) {
-      console.error("Error fetching leads", err);
+      console.error("Error fetching users", err);
     } finally {
-      setLoading(false);
+      setUsersLoading(false);
     }
   };
 
@@ -103,7 +98,7 @@ export default function LeadList() {
       const res = await LeadsApi.getCountries();
       setCountries(res.data || []);
     } catch (err) {
-      console.error("Error fetching leads", err);
+      console.error("Error fetching countries", err);
     } finally {
       setLoading(false);
     }
@@ -113,9 +108,8 @@ export default function LeadList() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      // Backend supports upsert via lead_id (create or update)
       await LeadsApi.create({
-        lead_id: form.lead_id, // optional for update
+        lead_id: form.lead_id,
         lead_name: form.lead_name,
         destination_id: form.destination_id,
         city: form.city,
@@ -156,6 +150,7 @@ export default function LeadList() {
     fetchLeads();
     fetchCountries();
     fetchUserList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // -------------------- Handlers --------------------
@@ -205,9 +200,6 @@ export default function LeadList() {
             onCancel={toggleLeadForm}
             onSubmit={handleSubmit}
             countries={countries}
-            isSearchable={true}
-            selectedCountry={selectedCountry}
-            setSelectedCountry={setSelectedCountry}
           />
         </div>
       )}
@@ -239,34 +231,17 @@ export default function LeadList() {
                   {/* SL */}
                   <td className="px-4 py-3 text-gray-600">{i + 1}</td>
 
-                  {/* Account Manager dropdown */}
-                  <td className="px-6 py-3">
-                    <div className="min-w-[220px]">
-                      <select
-                        className={`w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60 ${
-                          assigning[lead.id] || usersLoading ? "cursor-not-allowed" : ""
-                        }`}
-                        value={lead.account_manager_id ?? ""} // controlled
-                        onChange={(e) =>
-                          handleAssignAccountManager(lead.id, e.target.value || null)
-                        }
-                        disabled={assigning[lead.id] || usersLoading}
-                      >
-                        <option value="">— Select —</option>
-                        {users.map((u) => (
-                          <option key={u.id} value={u.id}>
-                            {u.name}
-                          </option>
-                        ))}
-                      </select>
-                      {usersLoading && (
-                        <p className="mt-1 text-xs text-gray-400">Loading users…</p>
-                      )}
-                    </div>
-                  </td>
+                  {/* Account Manager */}
+                  <AccountManagerCell
+                    lead={lead}
+                    users={users}
+                    usersLoading={usersLoading}
+                    assigning={assigning}
+                    handleAssignAccountManager={handleAssignAccountManager}
+                  />
 
-                  {/* University Name (your existing flag + title) */}
-                <td
+                  {/* University Name */}
+                  <td
                     className="cursor-pointer px-6 py-3 font-medium text-gray-900"
                     onClick={() => handleViewLead(lead.id)}
                   >
@@ -281,21 +256,23 @@ export default function LeadList() {
                           e.currentTarget.src = "/img/no-img.png";
                         }}
                       />
-
                       <div className="flex flex-col leading-tight">
-                        <span className="font-medium text-gray-900">{lead?.lead_name}</span>
-                        <span className="text-xs text-gray-500">{lead?.city || "—"}</span>
+                        <span className="font-medium text-gray-900">
+                          {lead?.lead_name}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {lead?.city || "—"}
+                        </span>
                       </div>
                     </div>
                   </td>
 
-
-                  {/* Contacts (placeholder or real count) */}
+                  {/* Contacts */}
                   <td className="px-6 py-3">
                     {lead.contacts_count ?? "—"}
                   </td>
 
-                  {/* Notes (placeholder) */}
+                  {/* Notes */}
                   <td className="px-6 py-3">
                     {lead.notes_count ?? "—"}
                   </td>
@@ -322,86 +299,8 @@ export default function LeadList() {
               </tr>
             )}
           </tbody>
-
         </table>
       </div>
     </div>
-  );
-}
-
-/* ==================== Sub-Components ==================== */
-
-function LeadForm({ form, submitting, onChange, onCancel, onSubmit, countries }) {
-  return (
-    <form
-      onSubmit={onSubmit}
-      className="flex w-full flex-wrap items-center gap-4"
-    >
-      <div className="min-w-[200px] flex-1">
-        <input
-          value={form.lead_name}
-          onChange={(e) => onChange("lead_name", e.target.value)}
-          placeholder="University Name"
-          className="h-10 w-full rounded-lg border border-gray-300 px-4 outline-none focus:ring-2 focus:ring-indigo-500"
-          required
-        />
-      </div>
-
-      <div className="min-w-[200px] flex-1">
-        <input
-          value={form.city}
-          onChange={(e) => onChange("city", e.target.value)}
-          placeholder="City"
-          className="h-10 w-full rounded-lg border border-gray-300 px-4 outline-none focus:ring-2 focus:ring-indigo-500"
-          required
-        />
-      </div>
-
-      <div className="min-w-[200px] flex-1">
-
-        <CountrySelect
-          countries={countries}
-          valueId={form.destination_id}
-          onChangeId={(v) => onChange("destination_id", v)}
-        />
-       
-      </div>
-
-      <div className="flex items-center gap-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-100"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={submitting}
-          className={`rounded-lg px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors duration-200 ${
-            submitting
-              ? "cursor-not-allowed bg-blue-300"
-              : "bg-[#282560] hover:bg-[#1f1c4d] focus:ring-4 focus:ring-blue-200"
-          }`}
-        >
-          {submitting ? "Saving…" : form.lead_id ? "Update" : "Save"}
-        </button>
-      </div>
-    </form>
-  );
-}
-
-
-function RowLoading({ colSpan }) {
-  return (
-    <tr>
-      <td colSpan={colSpan} className="px-6 py-6">
-        <div className="animate-pulse space-y-3">
-          <div className="h-4 w-2/3 rounded bg-gray-200" />
-          <div className="h-4 w-1/2 rounded bg-gray-200" />
-          <div className="h-4 w-3/4 rounded bg-gray-200" />
-        </div>
-      </td>
-    </tr>
   );
 }
