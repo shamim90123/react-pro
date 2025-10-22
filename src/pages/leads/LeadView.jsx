@@ -3,13 +3,13 @@ import { useParams } from "react-router-dom";
 import { LeadsApi } from "@/services/leads";
 import { ProductsApi } from "@/services/products";
 import { SweetAlert } from "@/components/ui/SweetAlert";
+import { useComments } from "@/hooks/useComments";
 
 import LeadHeader from "@/components/leads/LeadHeader";
 import ContactsTable from "@/components/leads/ContactsTable";
 import ContactForm from "@/components/leads/ContactForm";
 import ProductsSection from "@/components/leads/ProductsSection";
 import CommentsSection from "@/components/leads/CommentsSection";
-import { useComments } from "@/hooks/useComments";
 import UISkeleton from "@/components/ui/UISkeleton";
 
 /** Normalize any id to string for stable Set/map comparisons */
@@ -32,6 +32,10 @@ export default function LeadContactPage() {
   const [contactSubmitting, setContactSubmitting] = useState(false);
   const [refreshingContacts, setRefreshingContacts] = useState(false);
   const [deletingId, setDeletingId] = useState(null);
+   // ---------- Products ----------
+  const [products, setProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [selectedProductIds, setSelectedProductIds] = useState(new Set());
 
   const [contactForm, setContactForm] = useState({
     first_name: "",
@@ -42,11 +46,6 @@ export default function LeadContactPage() {
     id: null,
     lead_id: null,
   });
-
-  // ---------- Products ----------
-  const [products, setProducts] = useState([]);
-  const [loadingProducts, setLoadingProducts] = useState(false);
-  const [selectedProductIds, setSelectedProductIds] = useState(new Set());
 
   // ---------- Comments (via hook) ----------
   const {
