@@ -65,15 +65,24 @@ export default function ContactForm({
   onSubmit,
 }) {
   const [errors, setErrors] = useState({});
+  const [didSplitLegacyName, setDidSplitLegacyName] = useState(false);
 
-  // live validate on key fields
+  // One-time compatibility: if legacy `name` exists but first/last are empty, split it.
   useEffect(() => {
-    // only validate touched on submit; keeping light here
-  }, [form]);
+    if (!didSplitLegacyName && form?.name && !form?.first_name && !form?.last_name) {
+      const parts = String(form.name).trim().split(/\s+/);
+      const first = parts.shift() || "";
+      const last = parts.join(" ");
+      onFieldChange("first_name", first);
+      onFieldChange("last_name", last);
+      setDidSplitLegacyName(true);
+    }
+  }, [didSplitLegacyName, form?.name, form?.first_name, form?.last_name, onFieldChange]);
 
   const validate = () => {
     const e = {};
-    if (!form.name || !form.name.trim()) e.name = "Name is required.";
+    if (!form.first_name || !form.first_name.trim())
+      e.first_name = "First name is required.";
     if (form.email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,}$/i.test(form.email))
       e.email = "Invalid email format.";
     if (form.phone && !/^[0-9+\-() ]{6,20}$/.test(form.phone))
@@ -126,20 +135,35 @@ export default function ContactForm({
 
       {/* Fields */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* First Name */}
         <div className="sm:col-span-1">
           <Field
-            label="Contact Name"
-            name="name"
+            label="First Name"
+            name="first_name"
             required
-            value={form.name}
-            onChange={(v) => onFieldChange("name", v)}
-            placeholder="e.g., Maria Khan"
-            error={errors.name}
+            value={form.first_name}
+            onChange={(v) => onFieldChange("first_name", v)}
+            placeholder="e.g., Maria"
+            error={errors.first_name}
             maxLength={120}
-            autoComplete="name"
+            autoComplete="given-name"
           />
         </div>
 
+        {/* Last Name */}
+        <div className="sm:col-span-1">
+          <Field
+            label="Last Name"
+            name="last_name"
+            value={form.last_name}
+            onChange={(v) => onFieldChange("last_name", v)}
+            placeholder="e.g., Khan"
+            maxLength={120}
+            autoComplete="family-name"
+          />
+        </div>
+
+        {/* Email */}
         <div className="sm:col-span-1">
           <Field
             label="Contact Email"
@@ -154,6 +178,7 @@ export default function ContactForm({
           />
         </div>
 
+        {/* Phone */}
         <div className="sm:col-span-1">
           <Field
             label="Phone"
@@ -167,6 +192,7 @@ export default function ContactForm({
           />
         </div>
 
+        {/* Job Title */}
         <div className="sm:col-span-1">
           <Field
             label="Job Title"
@@ -175,19 +201,11 @@ export default function ContactForm({
             onChange={(v) => onFieldChange("job_title", v)}
             placeholder="e.g., Admissions Manager"
             maxLength={120}
+            autoComplete="organization-title"
           />
         </div>
 
-        <div className="sm:col-span-1">
-          <Field
-            label="Designation"
-            name="department"
-            value={form.department}
-            onChange={(v) => onFieldChange("department", v)}
-            placeholder="e.g., International Office"
-            maxLength={120}
-          />
-        </div>
+        {/* (Designation/Department removed as requested) */}
 
         {/* spacer to balance grid if needed */}
         <div className="hidden lg:block" />

@@ -34,12 +34,11 @@ export default function LeadContactPage() {
   const [deletingId, setDeletingId] = useState(null);
 
   const [contactForm, setContactForm] = useState({
-    name: "",
+    first_name: "",
+    last_name: "",
     email: "",
     phone: "",
     job_title: "",
-    department: "",
-    primary_status: "",
     id: null,
     lead_id: null,
   });
@@ -149,7 +148,8 @@ export default function LeadContactPage() {
     setIsEditing(true);
     setCurrentContactIndex(null);
     setContactForm({
-      name: "",
+      first_name: "",
+      last_name: "",
       email: "",
       phone: "",
       job_title: "",
@@ -168,7 +168,8 @@ export default function LeadContactPage() {
       setIsEditing(true);
       setCurrentContactIndex(index);
       setContactForm({
-        name: c.name || "",
+        first_name: c.first_name || "",
+        last_name: c.last_name || "",
         email: c.email || "",
         phone: c.phone || "",
         job_title: c.job_title || "",

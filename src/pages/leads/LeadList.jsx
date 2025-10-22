@@ -4,6 +4,7 @@ import { LeadsApi } from "@/services/leads";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 import Select from 'react-select'
 import CountrySelect from "@/components/ui/CountrySelect";
+import LeadActions from "./LeadActions";
 
 export default function LeadList() {
   // -------------------- Router --------------------
@@ -204,27 +205,12 @@ export default function LeadList() {
                   <td className="px-6 py-3">{lead.city || "—"}</td>
                   <td className="px-6 py-3">{formatDate(lead.created_at)}</td>
                   <td className="space-x-2 px-6 py-3 text-right">
-                    <button
-                      onClick={() => handleViewLead(lead.id)}
-                      className="inline-flex items-center gap-1 rounded-md bg-green-50 px-3 py-1.5 text-sm font-medium text-green-600 transition hover:bg-green-100"
-                    >
-                      <i className="fa-solid fa-eye text-xs" />
-                      View
-                    </button>
-                    <button
-                      onClick={() => handleEditLead(lead.id)}
-                      className="inline-flex items-center gap-1 rounded-md bg-blue-50 px-3 py-1.5 text-sm font-medium text-blue-600 transition hover:bg-blue-100"
-                    >
-                      <i className="fa-solid fa-pen text-xs" />
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteLead(lead.id)}
-                      className="inline-flex items-center gap-1 rounded-md bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 transition hover:bg-red-100"
-                    >
-                      <i className="fa-solid fa-trash text-xs" />
-                      Delete
-                    </button>
+                     <LeadActions
+                        lead={lead}
+                        handleViewLead={handleViewLead}
+                        handleEditLead={handleEditLead}
+                        handleDeleteLead={handleDeleteLead}
+                      />
                   </td>
                 </tr>
               ))
