@@ -118,19 +118,19 @@ export const LeadsApi = {
   },
 
   // in src/services/leads.js (or wherever LeadsApi lives)
-listContacts: async (leadId, { page = 1, perPage = 10 } = {}) => {
-  const url = `/api/v1/leads/${leadId}/contacts`;
-  const res = await api.get(url, { params: { page, per_page: perPage } });
-  const raw = res.data || {};
-  const items = raw.data ?? raw.items ?? [];
-  const meta  = raw.meta ?? {
-    current_page: raw.current_page ?? 1,
-    last_page:    raw.last_page ?? 1,
-    per_page:     raw.per_page ?? perPage,
-    total:        raw.total ?? items.length,
-  };
-  return { data: items, meta };
-},
+  listContacts: async (leadId, { page = 1, perPage = 10 } = {}) => {
+    const url = `/api/v1/leads/${leadId}/contacts`;
+    const res = await api.get(url, { params: { page, per_page: perPage } });
+    const raw = res.data || {};
+    const items = raw.data ?? raw.items ?? [];
+    const meta  = raw.meta ?? {
+      current_page: raw.current_page ?? 1,
+      last_page:    raw.last_page ?? 1,
+      per_page:     raw.per_page ?? perPage,
+      total:        raw.total ?? items.length,
+    };
+    return { data: items, meta };
+  },
 
 
 };
