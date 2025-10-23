@@ -63,9 +63,9 @@ export default function LeadRow({
                 {lead?.city || "—"}
               </span>
             </div>
-            {/* <span className="ml-auto text-xs text-gray-400">
-              {expanded ? "Hide" : "Quick edit"}
-            </span> */}
+            <span className="ml-auto text-xs text-gray-400">
+              {expanded ? "Hide" : ""}
+            </span>
           </button>
         </td>
 
