@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { DashboardApi } from "@/services/dashboard";
 
 export default function Overview() {
@@ -27,34 +28,46 @@ export default function Overview() {
     <span>{loading ? "—" : new Intl.NumberFormat().format(value)}</span>
   );
 
+  const Card = ({ to, bg, textColor, label, value }) => (
+    <Link
+      to={to}
+      className={`rounded-2xl border border-gray-200 ${bg} p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-200 block`}
+    >
+      <div className={`text-sm font-medium ${textColor}`}>{label}</div>
+      <div className={`mt-1 text-3xl font-bold ${textColor}`}>
+        <Fmt value={value} />
+      </div>
+    </Link>
+  );
+
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold text-gray-900">Overview</h2>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Leads */}
-        <div className="rounded-2xl border border-gray-200 bg-indigo-100 p-5 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="text-sm font-medium text-indigo-800">Total Universities  </div>
-          <div className="mt-1 text-3xl font-bold text-indigo-900">
-            <Fmt value={stats.leads} />
-          </div>
-        </div>
+        <Card
+          to="/leads"
+          bg="bg-indigo-100"
+          textColor="text-indigo-800"
+          label="Total Universities"
+          value={stats.leads}
+        />
 
-        {/* Users */}
-        <div className="rounded-2xl border border-gray-200 bg-teal-100 p-5 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="text-sm font-medium text-teal-800">Total Users</div>
-          <div className="mt-1 text-3xl font-bold text-teal-900">
-            <Fmt value={stats.users} />
-          </div>
-        </div>
+        <Card
+          to="/users"
+          bg="bg-teal-100"
+          textColor="text-teal-800"
+          label="Total Users"
+          value={stats.users}
+        />
 
-        {/* Products */}
-        <div className="rounded-2xl border border-gray-200 bg-amber-100 p-5 shadow-sm hover:shadow-md transition-all duration-200">
-          <div className="text-sm font-medium text-amber-800">Total Products</div>
-          <div className="mt-1 text-3xl font-bold text-amber-900">
-            <Fmt value={stats.products} />
-          </div>
-        </div>
+        <Card
+          to="/products"
+          bg="bg-amber-100"
+          textColor="text-amber-800"
+          label="Total Products"
+          value={stats.products}
+        />
       </div>
     </div>
   );
