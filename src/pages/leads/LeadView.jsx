@@ -1,6 +1,7 @@
 // src/pages/leads/LeadView.jsx
-import { useParams } from "react-router-dom";
 import { useMemo } from "react";
+import { useParams } from "react-router-dom";
+
 import { normId } from "@/utils/id";
 import { useComments } from "@/hooks/useComments";
 import { useLeadContacts } from "@/hooks/useLeadContacts";
@@ -15,11 +16,11 @@ import UISkeleton from "@/components/ui/UISkeleton";
 
 const COMMENTS_PAGE_SIZE = 10;
 
-export default function LeadContactPage() {
+export default function LeadView() {
   const { id: routeId } = useParams();
   const leadId = useMemo(() => normId(routeId), [routeId]);
 
-  // Lead + Contacts
+  // ---------- Lead + Contacts ----------
   const {
     lead,
     contacts,
@@ -36,7 +37,7 @@ export default function LeadContactPage() {
     remove: onDeleteContact,
   } = useLeadContacts(leadId);
 
-  // Products
+  // ---------- Products (with stage + AM bulk workflow) ----------
   const {
     products,
     loadingProducts,
@@ -45,9 +46,13 @@ export default function LeadContactPage() {
     toggleProduct,
     toggleAllProducts,
     saveSelectedProducts,
-  } = useLeadProducts(leadId);
+    stages,
+    users,
+    edits,
+    onEditField,
+  } = useLeadProducts(leadId, lead?.account_manager_id);
 
-  // Comments
+  // ---------- Comments ----------
   const {
     items: comments,
     meta: commentsMeta,
@@ -68,17 +73,19 @@ export default function LeadContactPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
+      {/* Header */}
       <LeadHeader lead={lead} onAddContact={openAddContact} />
 
-      {/* Contacts */}
+      {/* ---------- Contacts ---------- */}
       <section className="mb-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">
             University Contacts
             {refreshing ? (
-              <span className="ml-2 text-sm text-gray-500">(refreshing...)</span>
+              <span className="ml-2 text-sm text-gray-500">(refreshing…)</span>
             ) : null}
           </h2>
+
           <button
             onClick={openAddContact}
             className="rounded-lg bg-[#282560] px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
@@ -111,7 +118,7 @@ export default function LeadContactPage() {
         )}
       </section>
 
-      {/* Products */}
+      {/* ---------- Products (select + inline editors per product) ---------- */}
       <ProductsSection
         products={products}
         loading={loadingProducts}
@@ -120,9 +127,15 @@ export default function LeadContactPage() {
         onToggle={toggleProduct}
         onToggleAll={toggleAllProducts}
         onSave={saveSelectedProducts}
+        // new props for stage/AM workflow
+        stages={stages}
+        users={users}
+        edits={edits}
+        onEditField={onEditField}
+        leadAccountManagerId={lead?.account_manager_id}
       />
 
-      {/* Comments */}
+      {/* ---------- Comments ---------- */}
       <CommentsSection
         loading={loadingComments}
         comments={comments}

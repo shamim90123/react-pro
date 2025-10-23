@@ -1,15 +1,27 @@
+// src/hooks/useLeadProducts.js
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ProductsApi } from "@/services/products";
 import { LeadsApi } from "@/services/leads";
+import { UsersApi } from "@/services/users";
+import { LeadStageApi } from "@/services/leadStages";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 import { normId } from "@/utils/id";
 
 const PRODUCT_FETCH_LIMIT = 100;
 
-export function useLeadProducts(leadId) {
+/**
+ * Note: UI does not show "Use Lead AM". We still accept `leadAccountManagerId`
+ * to set the default product AM when pivot AM is empty.
+ */
+export function useLeadProducts(leadId, leadAccountManagerId) {
   const [products, setProducts] = useState([]);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [selectedProductIds, setSelectedProductIds] = useState(new Set());
+  const [stages, setStages] = useState([]);
+  const [users, setUsers] = useState([]);
+
+  // { [productId]: { sales_stage_id: string|"", account_manager_id: string|"" } }
+  const [edits, setEdits] = useState({});
 
   const allSelected = useMemo(
     () => products.length > 0 && selectedProductIds.size === products.length,
@@ -33,42 +45,127 @@ export function useLeadProducts(leadId) {
     }
   }, []);
 
+  const loadStagesAndUsers = useCallback(async () => {
+    try {
+      const [sRes, uRes] = await Promise.all([
+        LeadStageApi.list(),
+        UsersApi.list?.() ?? UsersApi.getAll?.() ?? Promise.resolve({ data: [] }),
+      ]);
+      const sItems = Array.isArray(sRes?.data) ? sRes.data : (sRes || []);
+      const uItems = Array.isArray(uRes?.data) ? uRes.data : (uRes || []);
+      setStages(sItems);
+      setUsers(uItems);
+    } catch (e) {
+      console.error(e);
+      // Non-blocking
+    }
+  }, []);
+
   const hydrateSelectedProducts = useCallback(async () => {
     if (!leadId) return;
     try {
       const res = await LeadsApi.getProducts(leadId);
-      const list = (res?.data || res || []).map((p) => normId(p.id));
-      setSelectedProductIds(new Set(list));
+      const arr = (res?.data || res || []).map((p) => ({
+        id: normId(p.id),
+        stage: p?.pivot?.sales_stage_id ? String(p.pivot.sales_stage_id) : "",
+        am: p?.pivot?.account_manager_id ? String(p.pivot.account_manager_id) : "",
+      }));
+
+      // select current links
+      setSelectedProductIds(new Set(arr.map((a) => a.id)));
+
+      // seed edits: if pivot AM empty, default to lead AM
+      setEdits((prev) => {
+        const next = { ...prev };
+        for (const a of arr) {
+          next[a.id] = {
+            sales_stage_id: a.stage || "",
+            account_manager_id:
+              a.am || (leadAccountManagerId ? String(leadAccountManagerId) : ""),
+          };
+        }
+        return next;
+      });
     } catch (e) {
       console.error(e);
       // non-blocking
     }
-  }, [leadId]);
+  }, [leadId, leadAccountManagerId]);
 
   useEffect(() => {
     loadProducts();
   }, [loadProducts]);
 
   useEffect(() => {
+    loadStagesAndUsers();
+  }, [loadStagesAndUsers]);
+
+  useEffect(() => {
     hydrateSelectedProducts();
   }, [hydrateSelectedProducts]);
 
-  const toggleProduct = useCallback((productId) => {
-    const pid = normId(productId);
-    setSelectedProductIds((prev) => {
-      const next = new Set(prev);
-      next.has(pid) ? next.delete(pid) : next.add(pid);
-      return next;
-    });
-  }, []);
+  const ensureEditRow = useCallback(
+    (pid) => {
+      setEdits((prev) => {
+        if (prev[pid]) return prev;
+        return {
+          ...prev,
+          [pid]: {
+            sales_stage_id: "",
+            account_manager_id: leadAccountManagerId ? String(leadAccountManagerId) : "",
+          },
+        };
+      });
+    },
+    [leadAccountManagerId]
+  );
+
+  const toggleProduct = useCallback(
+    (productId) => {
+      const pid = normId(productId);
+      setSelectedProductIds((prev) => {
+        const next = new Set(prev);
+        next.has(pid) ? next.delete(pid) : next.add(pid);
+        return next;
+      });
+      ensureEditRow(pid);
+    },
+    [ensureEditRow]
+  );
 
   const toggleAllProducts = useCallback(() => {
     if (allSelected) {
       setSelectedProductIds(new Set());
     } else {
-      setSelectedProductIds(new Set(products.map((p) => normId(p.id))));
+      const ids = products.map((p) => normId(p.id));
+      setSelectedProductIds(new Set(ids));
+      setEdits((prev) => {
+        const next = { ...prev };
+        for (const p of products) {
+          const pid = normId(p.id);
+          if (!next[pid]) {
+            next[pid] = {
+              sales_stage_id: "",
+              account_manager_id: leadAccountManagerId ? String(leadAccountManagerId) : "",
+            };
+          }
+        }
+        return next;
+      });
     }
-  }, [allSelected, products]);
+  }, [allSelected, products, leadAccountManagerId]);
+
+  const onEditField = useCallback((productId, patch) => {
+    const pid = normId(productId);
+    setEdits((prev) => {
+      const base =
+        prev[pid] ?? {
+          sales_stage_id: "",
+          account_manager_id: leadAccountManagerId ? String(leadAccountManagerId) : "",
+        };
+      return { ...prev, [pid]: { ...base, ...patch } };
+    });
+  }, [leadAccountManagerId]);
 
   const saveSelectedProducts = useCallback(async () => {
     if (!leadId) return;
@@ -81,23 +178,34 @@ export function useLeadProducts(leadId) {
       if (!result.isConfirmed) return;
 
       const savedIds = Array.from(selectedProductIds);
+
+      // 1) Replace the set of linked products
       await LeadsApi.assignProducts(leadId, savedIds);
 
-      // refresh canonical from server
-      try {
-        const res = await LeadsApi.getProducts(leadId);
-        const fresh = new Set((res?.data || res || []).map((p) => normId(p.id)));
-        setSelectedProductIds(fresh);
-      } catch {
-        setSelectedProductIds(new Set(savedIds));
+      // 2) Bulk apply pivot values (single API call)
+      const items = savedIds.map((pid) => {
+        const row = edits[pid] || {};
+        const sales_stage_id = row.sales_stage_id || null;
+        const account_manager_id =
+          row.account_manager_id || (leadAccountManagerId ? String(leadAccountManagerId) : "");
+
+        return {
+          product_id: Number(pid),
+          sales_stage_id: sales_stage_id ? Number(sales_stage_id) : null,
+          account_manager_id: account_manager_id ? Number(account_manager_id) : null,
+        };
+      });
+
+      if (items.length > 0) {
+        await LeadsApi.bulkUpdateProductLinks(leadId, items);
       }
 
-      SweetAlert.success("Products saved");
+      SweetAlert.success("Products & settings saved");
     } catch (e) {
       console.error(e);
       SweetAlert.error("Failed to save products");
     }
-  }, [leadId, selectedProductIds]);
+  }, [leadId, selectedProductIds, edits, leadAccountManagerId]);
 
   return {
     products,
@@ -107,5 +215,10 @@ export function useLeadProducts(leadId) {
     toggleProduct,
     toggleAllProducts,
     saveSelectedProducts,
+    // expose for table
+    stages,
+    users,
+    edits,
+    onEditField,
   };
 }
