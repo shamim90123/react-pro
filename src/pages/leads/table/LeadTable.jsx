@@ -12,6 +12,7 @@ export default function LeadTable({
   onViewLead,
   onEditLead,
   onDeleteLead,
+  onQuickFormSubmit, // NEW
 }) {
   const hasLeads = (leads || []).length > 0;
 
@@ -46,6 +47,7 @@ export default function LeadTable({
                 onViewLead={onViewLead}
                 onEditLead={onEditLead}
                 onDeleteLead={onDeleteLead}
+                onQuickFormSubmit={onQuickFormSubmit} // NEW
               />
             ))
           ) : (

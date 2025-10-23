@@ -3,6 +3,9 @@ import LeadForm from "./LeadForm";
 import LeadDetailsModal from "./LeadDetailsModal";
 import LeadTable from "./table/LeadTable";
 import { useLeads } from "./hooks/useLeads";
+import { LeadsApi } from "@/services/leads";
+import { LeadStageApi } from "@/services/leadStages";
+
 
 export default function LeadList() {
   const navigate = useNavigate();
@@ -46,6 +49,15 @@ export default function LeadList() {
     if (!showLeadForm) toggleLeadForm();
   };
 
+const handleQuickFormSubmit = async ({ leadId, stageId, accountManagerId }) => {
+  // Adjust to your actual endpoints
+  await LeadsApi.update(leadId, {
+    sales_stage_id: stageId,
+    account_manager_id: accountManagerId,
+  });
+  // await fetchLeads(); // refresh row/list if you want
+};
+
   const handleViewLead = (id) => navigate(`/leads/${id}/edit`);
 
   return (
@@ -87,6 +99,7 @@ export default function LeadList() {
         onViewLead={handleViewLead}
         onEditLead={handleEditLead}
         onDeleteLead={handleDeleteLead}
+        onQuickFormSubmit={handleQuickFormSubmit}
       />
 
       {/* Details Modal */}

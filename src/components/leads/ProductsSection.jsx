@@ -1,3 +1,4 @@
+// Components/leads/ProductsSection.jsx
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export default function ProductsSection({

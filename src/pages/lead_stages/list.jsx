@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SweetAlert } from "@/components/ui/SweetAlert";
-import { LeadStageApi } from "@/services/lead_stages"; // Import lead stages API
+import { LeadStageApi } from "@/services/leadStages"; // Import lead stages API
 
 export default function LeadStageList() {
   const navigate = useNavigate();

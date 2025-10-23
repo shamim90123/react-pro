@@ -1,3 +1,4 @@
+// src/pages/leads/LeadView.jsx
 import { useParams } from "react-router-dom";
 import { useMemo } from "react";
 import { normId } from "@/utils/id";

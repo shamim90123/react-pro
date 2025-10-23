@@ -98,9 +98,20 @@ export const LeadsApi = {
     return res.data; // { message, data: [...] }
   },
 
-  getProducts: async (leadId) => {
+  // getProducts: async (leadId) => {
+  //   const res = await api.get(`${BASE}/${leadId}/products`);
+  //   return res.data; // { data: [...] }
+  // },
+
+getProducts: async (leadId) => {
     const res = await api.get(`${BASE}/${leadId}/products`);
-    return res.data; // { data: [...] }
+    return res.data; // { data: [{ id, name, pivot: { sales_stage_id, account_manager_id }}, ...] }
+  },
+
+  bulkUpdateProductLinks: async (leadId, items) => {
+    // items: [{ product_id, sales_stage_id, account_manager_id }]
+    const res = await api.put(`${BASE}/${leadId}/products/bulk`, { items });
+    return res.data; // { message, data: [...] }
   },
 
   getCountries: async () => {
