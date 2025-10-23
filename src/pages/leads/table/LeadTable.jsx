@@ -26,6 +26,7 @@ export default function LeadTable({
             <th className="px-6 py-3">University Name</th>
             <th className="px-6 py-3">Contacts</th>
             <th className="px-6 py-3">Notes</th>
+            <th className="px-6 py-3">Status</th>
             <th className="px-6 py-3 text-right">Actions</th>
           </tr>
         </thead>

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ProductsApi } from "@/services/products";
 import { LeadsApi } from "@/services/leads";
 import { UsersApi } from "@/services/users";
-import { LeadStageApi } from "@/services/SaleStages";
+import { SaleStageApi } from "@/services/SaleStages";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 import { normId } from "@/utils/id";
 
@@ -48,7 +48,7 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
   const loadStagesAndUsers = useCallback(async () => {
     try {
       const [sRes, uRes] = await Promise.all([
-        LeadStageApi.list(),
+        SaleStageApi.list(),
         UsersApi.list?.() ?? UsersApi.getAll?.() ?? Promise.resolve({ data: [] }),
       ]);
       const sItems = Array.isArray(sRes?.data) ? sRes.data : (sRes || []);

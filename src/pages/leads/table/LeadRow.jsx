@@ -93,6 +93,18 @@ export default function LeadRow({
           </button>
         </td>
 
+        {/* status */}
+        <td className="px-6 py-3">
+          <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
+            {/* 1 active, 2 hold, 0 inactive */}
+            {lead.status == 1
+              ? "Active"
+              : lead.status == 2
+              ? "On Hold"
+              : "Inactive"}
+          </span>
+        </td>
+
         {/* Actions */}
         <td className="space-x-2 px-6 py-3 text-right">
           <LeadActions

@@ -4,7 +4,7 @@ import LeadDetailsModal from "./LeadListModal";
 import LeadTable from "./table/LeadTable";
 import { useLeads } from "./hooks/useLeads";
 import { LeadsApi } from "@/services/leads";
-import { LeadStageApi } from "@/services/SaleStages";
+import { SaleStageApi } from "@/services/SaleStages";
 
 
 export default function LeadList() {
