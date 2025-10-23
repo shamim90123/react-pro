@@ -2,22 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { LeadStageApi } from "@/services/lead_stages"; // Import Products API
+import { SaleStageApi } from "@/services/SaleStages"; // Import Products API
 
 const ProductFormPage = () => {
-  const { id } = useParams(); // For editing a lead stage
+  const { id } = useParams(); // For editing a Sale stage
   const navigate = useNavigate();
   const [form, setForm] = useState({ name: "", status: "active" });
 
   useEffect(() => {
     if (id) {
-      // Fetch the existing lead stage data if we're editing
+      // Fetch the existing Sale stage data if we're editing
       const fetchProduct = async () => {
         try {
-          const data = await LeadStageApi.show(id); // Use LeadStageApi to fetch lead stage data
+          const data = await SaleStageApi.show(id); // Use SaleStageApi to fetch Sale stage data
           setForm(data);
         } catch (error) {
-          console.error("Error fetching lead stage data:", error);
+          console.error("Error fetching Sale stage data:", error);
         }
       };
 
@@ -35,28 +35,28 @@ const ProductFormPage = () => {
 
     try {
       if (id) {
-        // For edit, update the lead stage
-        await LeadStageApi.update(id, form); 
+        // For edit, update the Sale stage
+        await SaleStageApi.update(id, form); 
       } else {
-        // For add, create a new lead stage
-        await LeadStageApi.create(form); 
+        // For add, create a new Sale stage
+        await SaleStageApi.create(form); 
       }
 
-      navigate("/lead-stages"); // Navigate back to the lead stage list page
+      navigate("/sale-stages"); // Navigate back to the Sale stage list page
     } catch (error) {
       console.error("Error saving data:", error);
-      alert("Error saving lead stage data. Please try again.");
+      alert("Error saving Sale stage data. Please try again.");
     }
   };
 
   return (
     <div className="container mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">{id ? "Edit" : "Add"} Lead Stage</h1>
+      <h1 className="text-2xl font-semibold mb-4">{id ? "Edit" : "Add"} Sale Stage</h1>
       <form onSubmit={handleSubmit}>
         <div className="flex mb-4 space-x-4">
-          {/* Lead Stage Name Field */}
+          {/* Sale Stage Name Field */}
           <div className="w-1/2">
-            <label className="block text-sm font-medium mb-2">Lead Stage Name</label>
+            <label className="block text-sm font-medium mb-2">Sale Stage Name</label>
             <input
               type="text"
               name="name"
@@ -87,7 +87,7 @@ const ProductFormPage = () => {
             type="submit"
             className="px-4 py-2 text-white bg-blue-500 rounded-lg"
           >
-            {id ? "Save Changes" : "Add Lead Stage"}
+            {id ? "Save Changes" : "Add Sale Stage"}
           </button>
         </div>
       </form>
