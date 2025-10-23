@@ -1,3 +1,4 @@
+// src/pages/leads/table/LeadTable.jsx
 import RowLoading from "../RowLoading";
 import LeadRow from "./LeadRow";
 
@@ -13,6 +14,8 @@ export default function LeadTable({
   onEditLead,
   onDeleteLead,
   onQuickFormSubmit, // NEW
+  page = 1,
+  pageSize = 10
 }) {
   const hasLeads = (leads || []).length > 0;
 
@@ -38,7 +41,8 @@ export default function LeadTable({
             leads.map((lead, i) => (
               <LeadRow
                 key={lead.id ?? i}
-                index={i}
+                index={(page - 1) * pageSize + i}
+                // index={i}
                 lead={lead}
                 users={users}
                 usersLoading={usersLoading}

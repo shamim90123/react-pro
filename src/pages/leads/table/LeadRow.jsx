@@ -1,3 +1,4 @@
+// src/pages/leads/table/LeadRow.jsx
 import { useState, useCallback } from "react";
 import AccountManagerCell from "../AccountManagerCell";
 import LeadActions from "../LeadActions";

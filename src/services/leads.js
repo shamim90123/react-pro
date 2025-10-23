@@ -9,9 +9,25 @@ const COMMENT_BASE = "/api/v1/leads/{leadId}/comments";
 const CONTACTS_FLAT = "/api/v1/contacts";
 
 export const LeadsApi = {
+  // list: async ({ page = 1, perPage = 10, q = "" } = {}) => {
+  //   const res = await api.get(BASE, { params: { page, per_page: perPage, ...(q ? { q } : {}) } });
+  //   return res.data; // Laravel paginator (data, meta, links)
+  // },
   list: async ({ page = 1, perPage = 10, q = "" } = {}) => {
-    const res = await api.get(BASE, { params: { page, per_page: perPage, ...(q ? { q } : {}) } });
-    return res.data; // Laravel paginator (data, meta, links)
+    const res = await api.get(BASE, {
+      params: { page, per_page: perPage, ...(q ? { q } : {}) },
+    });
+
+    const raw = res.data || {};
+    const items = raw.data ?? raw.items ?? [];
+    const meta = raw.meta ?? {
+      current_page: raw.current_page ?? 1,
+      per_page: raw.per_page ?? perPage,
+      total: raw.total ?? items.length,
+      last_page: raw.last_page ?? Math.max(1, Math.ceil((raw.total ?? items.length) / (raw.per_page ?? perPage))),
+    };
+
+    return { data: items, meta };
   },
   
   get: async (id) => {
@@ -139,6 +155,10 @@ export const LeadsApi = {
     return res.data; // { data: [...] }
   },
 
-  bulkUpsert: (rows) => api.post("/leads/bulk-upsert", { leads: rows }),
+  // bulkUpsert: (rows) => api.post("/api/v1/leads/bulk-upsert", { leads: rows }),
+  bulkUpsert: async (rows) => {
+    const res = await api.post("/api/v1/leads/bulk-importer", { leads: rows });
+    return res.data; // { message, data: [...] }
+  }
 
 };

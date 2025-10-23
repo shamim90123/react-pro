@@ -1,11 +1,12 @@
+// src/pages/leads/LeadList.jsx
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import LeadForm from "./LeadForm";
 import LeadDetailsModal from "./LeadListModal";
 import LeadTable from "./table/LeadTable";
+import Pagination from "@/components/layout/Pagination";
 import { useLeads } from "./hooks/useLeads";
 import { LeadsApi } from "@/services/leads";
-import { SaleStageApi } from "@/services/SaleStages";
-
 
 export default function LeadList() {
   const navigate = useNavigate();
@@ -18,13 +19,11 @@ export default function LeadList() {
     openDetails,
     closeDetails,
 
-    // data
+    // data (keep using hook for users, countries, etc.)
     users,
     usersLoading,
     assigning,
-    leads,
     countries,
-    loading,
 
     // form
     showLeadForm,
@@ -39,8 +38,46 @@ export default function LeadList() {
     handleDeleteLead,
   } = useLeads();
 
+  // ------ NEW: local pagination state for list ------
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50);
+  const [total, setTotal] = useState(0);
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [q, setQ] = useState(""); // optional search term if you add a search box
+
+  const fetchPagedLeads = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data, meta } = await LeadsApi.list({ page, perPage: pageSize, q });
+      setRows(data || []);
+      setTotal(meta?.total ?? 0);
+      // guard against out-of-range states after deletes/filters
+      if (meta?.current_page && meta.current_page !== page) {
+        setPage(meta.current_page);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [page, pageSize, q]);
+
+  useEffect(() => {
+    fetchPagedLeads();
+  }, [fetchPagedLeads]);
+
+  // If you delete a lead, refresh the current page
+  const handleAfterDelete = async (id) => {
+    await handleDeleteLead(id);
+    // if the page becomes empty (e.g., last item deleted), go back a page
+    if (rows.length === 1 && page > 1) {
+      setPage((p) => p - 1);
+    } else {
+      fetchPagedLeads();
+    }
+  };
+
   const handleEditLead = (id) => {
-    const l = leads.find((x) => x.id === id);
+    const l = rows.find((x) => x.id === id);
     if (!l) return;
     updateForm("lead_id", l.id);
     updateForm("lead_name", l.lead_name || "");
@@ -50,12 +87,11 @@ export default function LeadList() {
   };
 
   const handleQuickFormSubmit = async ({ leadId, stageId, accountManagerId }) => {
-    // Adjust to your actual endpoints
     await LeadsApi.update(leadId, {
       sales_stage_id: stageId,
       account_manager_id: accountManagerId,
     });
-    // await fetchLeads(); // refresh row/list if you want
+    fetchPagedLeads();
   };
 
   const handleViewLead = (id) => navigate(`/leads/${id}/edit`);
@@ -73,6 +109,16 @@ export default function LeadList() {
         </button>
       </div>
 
+      {/* Optional: simple search box that resets to page 1 */}
+      {/* <div className="mb-4">
+        <input
+          value={q}
+          onChange={(e) => { setQ(e.target.value); setPage(1); }}
+          placeholder="Search by name or city…"
+          className="w-full max-w-xs rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        />
+      </div> */}
+
       {/* Form */}
       {showLeadForm && (
         <div className="pb-8">
@@ -81,7 +127,11 @@ export default function LeadList() {
             submitting={submitting}
             onChange={updateForm}
             onCancel={toggleLeadForm}
-            onSubmit={handleUniversityFormSubmit}
+            onSubmit={async (payload) => {
+              await handleUniversityFormSubmit(payload);
+              // after create/update, reload first page to show newest (or keep current page)
+              fetchPagedLeads();
+            }}
             countries={countries}
           />
         </div>
@@ -90,7 +140,7 @@ export default function LeadList() {
       {/* Table */}
       <LeadTable
         loading={loading}
-        leads={leads}
+        leads={rows}
         users={users}
         usersLoading={usersLoading}
         assigning={assigning}
@@ -98,8 +148,23 @@ export default function LeadList() {
         onOpenDetails={openDetails}
         onViewLead={handleViewLead}
         onEditLead={handleEditLead}
-        onDeleteLead={handleDeleteLead}
+        onDeleteLead={handleAfterDelete}
         onQuickFormSubmit={handleQuickFormSubmit}
+        page={page}               // 👈 add this
+        pageSize={pageSize}       // 👈 and this
+      />
+
+      {/* Pagination */}
+      <Pagination
+        className="mt-2"
+        page={page}
+        pageSize={pageSize}
+        total={total}
+        onPageChange={setPage}
+        onPageSizeChange={(n) => {
+          setPageSize(n);
+          setPage(1); // reset to first page on page-size change
+        }}
       />
 
       {/* Details Modal */}
