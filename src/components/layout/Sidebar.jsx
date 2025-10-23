@@ -10,7 +10,7 @@ const navItems = [
 
 const configurationChildren = [
   { to: "/products", label: "Products", icon: "📦" },
-  { to: "/lead-stages", label: "Sale Stages", icon: "📊" },
+  { to: "/sale-stages", label: "Sale Stages", icon: "📊" },
 ];
 
 export default function Sidebar({ open, onClose }) {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SweetAlert } from "@/components/ui/SweetAlert";
-import { LeadStageApi } from "@/services/leadStages"; // Import lead stages API
+import { SaleStageApi } from "@/services/SaleStages"; // Import sale stages API
 
 export default function LeadStageList() {
   const navigate = useNavigate();
@@ -18,19 +18,19 @@ export default function LeadStageList() {
     return () => clearTimeout(timeout);
   }, [query]);
 
-  // Fetch lead stages with search query
+  // Fetch sale stages with search query
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await LeadStageApi.list({
+        const data = await SaleStageApi.list({
           q: debouncedQ || "",
         });
 
         const items = Array.isArray(data?.data) ? data.data : data || [];
         setRows(items);
       } catch (e) {
-        SweetAlert.error(e?.data?.message || e?.message || "Failed to load lead stages");
+        SweetAlert.error(e?.data?.message || e?.message || "Failed to load sale stages");
       } finally {
         setLoading(false);
       }
@@ -49,9 +49,9 @@ export default function LeadStageList() {
     if (!res.isConfirmed) return;
 
     try {
-      await LeadStageApi.remove(id);
+      await SaleStageApi.remove(id);
       SweetAlert.success("LeadStage deleted");
-      // Reload the lead stages list
+      // Reload the sale stages list
       const updatedRows = rows.filter((LeadStage) => LeadStage.id !== id);
       setRows(updatedRows);
     } catch (e) {
@@ -67,10 +67,10 @@ export default function LeadStageList() {
         <div className="flex items-center gap-3 w-full sm:w-auto">
        
           <button
-            onClick={() => navigate("/lead-stages/new")}
+            onClick={() => navigate("/sale-stages/new")}
             className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg"
           >
-            + Add Lead Stage
+            + Add sale Stage
           </button>
         </div>
       </div>
@@ -89,7 +89,7 @@ export default function LeadStageList() {
             {loading ? (
               <tr>
                 <td className="px-6 py-6 text-center text-gray-500" colSpan={3}>
-                  Loading Lead Stages…
+                  Loading sale Stages…
                 </td>
               </tr>
             ) : rows?.length ? (
@@ -100,7 +100,7 @@ export default function LeadStageList() {
                   <td className="px-6 py-3 text-right">
                     <button
                       className="text-blue-600 hover:underline text-sm mr-3"
-                      onClick={() => navigate(`/lead-stages/${LeadStage.id}/edit`)}
+                      onClick={() => navigate(`/sale-stages/${LeadStage.id}/edit`)}
                     >
                       Edit
                     </button>
@@ -116,7 +116,7 @@ export default function LeadStageList() {
             ) : (
               <tr>
                 <td className="px-6 py-6 text-center text-gray-500" colSpan={3}>
-                  No lead stages found.
+                  No sale stages found.
                 </td>
               </tr>
             )}

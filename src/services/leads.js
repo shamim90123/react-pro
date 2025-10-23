@@ -30,6 +30,20 @@ export const LeadsApi = {
   },
 
   // ----- Contacts -----
+  listContacts: async (leadId, { page = 1, perPage = 10 } = {}) => {
+    const url = `/api/v1/leads/${leadId}/contacts`;
+    const res = await api.get(url, { params: { page, per_page: perPage } });
+    const raw = res.data || {};
+    const items = raw.data ?? raw.items ?? [];
+    const meta  = raw.meta ?? {
+      current_page: raw.current_page ?? 1,
+      last_page:    raw.last_page ?? 1,
+      per_page:     raw.per_page ?? perPage,
+      total:        raw.total ?? items.length,
+    };
+    return { data: items, meta };
+  },
+
   createContact: async (leadId, payload) => {
     const res = await api.post(CONTACT_BASE.replace("{leadId}", leadId), payload);
     return res.data; // array of contacts returned
@@ -91,6 +105,7 @@ export const LeadsApi = {
     return res.status === 204 ? null : res.data;
   },
 
+  // ----- Products -----
   assignProducts: async (leadId, productIds = []) => {
     const res = await api.put(`${BASE}/${leadId}/products`, {
       product_ids: productIds,
@@ -98,12 +113,7 @@ export const LeadsApi = {
     return res.data; // { message, data: [...] }
   },
 
-  // getProducts: async (leadId) => {
-  //   const res = await api.get(`${BASE}/${leadId}/products`);
-  //   return res.data; // { data: [...] }
-  // },
-
-getProducts: async (leadId) => {
+  getProducts: async (leadId) => {
     const res = await api.get(`${BASE}/${leadId}/products`);
     return res.data; // { data: [{ id, name, pivot: { sales_stage_id, account_manager_id }}, ...] }
   },
@@ -114,12 +124,7 @@ getProducts: async (leadId) => {
     return res.data; // { message, data: [...] }
   },
 
-  getCountries: async () => {
-    const res = await api.get(`/api/v1/countries`);
-    return res.data; // { data: [...] }
-  },
-
-  // src/lib/leads.js
+  // ----- Account Manager -----
   async assignAccountManager(leadId, userId) {
     // Axios: await the call, use .status/.data, and send JSON directly
     const res = await api.post(`${BASE}/account-manager/${leadId}`, {
@@ -127,20 +132,11 @@ getProducts: async (leadId) => {
     });
     return res.data; // <-- Axios response body
   },
-
-  // in src/services/leads.js (or wherever LeadsApi lives)
-  listContacts: async (leadId, { page = 1, perPage = 10 } = {}) => {
-    const url = `/api/v1/leads/${leadId}/contacts`;
-    const res = await api.get(url, { params: { page, per_page: perPage } });
-    const raw = res.data || {};
-    const items = raw.data ?? raw.items ?? [];
-    const meta  = raw.meta ?? {
-      current_page: raw.current_page ?? 1,
-      last_page:    raw.last_page ?? 1,
-      per_page:     raw.per_page ?? perPage,
-      total:        raw.total ?? items.length,
-    };
-    return { data: items, meta };
+  
+  // ----- Countries -----
+  getCountries: async () => {
+    const res = await api.get(`/api/v1/countries`);
+    return res.data; // { data: [...] }
   },
 
 

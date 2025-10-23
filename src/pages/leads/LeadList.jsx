@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import LeadForm from "./LeadForm";
-import LeadDetailsModal from "./LeadDetailsModal";
+import LeadDetailsModal from "./LeadListModal";
 import LeadTable from "./table/LeadTable";
 import { useLeads } from "./hooks/useLeads";
 import { LeadsApi } from "@/services/leads";
-import { LeadStageApi } from "@/services/leadStages";
+import { LeadStageApi } from "@/services/SaleStages";
 
 
 export default function LeadList() {
@@ -49,14 +49,14 @@ export default function LeadList() {
     if (!showLeadForm) toggleLeadForm();
   };
 
-const handleQuickFormSubmit = async ({ leadId, stageId, accountManagerId }) => {
-  // Adjust to your actual endpoints
-  await LeadsApi.update(leadId, {
-    sales_stage_id: stageId,
-    account_manager_id: accountManagerId,
-  });
-  // await fetchLeads(); // refresh row/list if you want
-};
+  const handleQuickFormSubmit = async ({ leadId, stageId, accountManagerId }) => {
+    // Adjust to your actual endpoints
+    await LeadsApi.update(leadId, {
+      sales_stage_id: stageId,
+      account_manager_id: accountManagerId,
+    });
+    // await fetchLeads(); // refresh row/list if you want
+  };
 
   const handleViewLead = (id) => navigate(`/leads/${id}/edit`);
 

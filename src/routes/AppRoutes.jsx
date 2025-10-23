@@ -19,8 +19,8 @@ import ProductList from "@/pages/products/list.jsx";
 import ProductFormPage from "@/pages/products/form.jsx";
 
 // Lead Stages
-import LeadStageList from "@/pages/lead_stages/list.jsx";
-import LeadStageFormPage from "@/pages/lead_stages/form.jsx";
+import SaleStageList from "@/pages/sale_stages/list.jsx";
+import SaleStageFormPage from "@/pages/sale_stages/form.jsx";
 
 // Optional NotFound
 import NotFound from "@/pages/NotFound.jsx";
@@ -54,10 +54,10 @@ export const appRoutes = [
           { path: "/products/new", element: <ProductFormPage /> },
           { path: "/products/:id/edit", element: <ProductFormPage /> },
 
-          // Lead Stages
-          { path: "/lead-stages", element: <LeadStageList /> },
-          { path: "/lead-stages/new", element: <LeadStageFormPage /> },
-          { path: "/lead-stages/:id/edit", element: <LeadStageFormPage /> },
+          // Sale Stages
+          { path: "/sale-stages", element: <SaleStageList /> },
+          { path: "/sale-stages/new", element: <SaleStageFormPage /> },
+          { path: "/sale-stages/:id/edit", element: <SaleStageFormPage /> },
         ],
       },
     ],

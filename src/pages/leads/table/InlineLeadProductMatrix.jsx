@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 import { LeadsApi } from "@/services/leads";
-import { LeadStageApi } from "@/services/leadStages";
+import { LeadStageApi } from "@/services/SaleStages";
 
 /**
  * Product-wise editable matrix with a single bulk Save/Cancel at the bottom.
@@ -32,7 +32,7 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
           LeadStageApi.list(),
         ]);
         setRows(normalizeProducts(pRes?.data || []));
-        setStages(sRes?.data || []);
+        setStages(sRes || []);
       } catch (err) {
         console.error(err);
         SweetAlert.error("Failed to load products/stages");
