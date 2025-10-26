@@ -96,6 +96,16 @@ export default function LeadList() {
 
   const handleViewLead = (id) => navigate(`/leads/${id}/edit`);
 
+
+    // ✅ NEW: wrap AM assignment so it refreshes the list
+  const handleAssignAMAndRefresh = useCallback(
+    async (leadId, userId) => {
+      await handleAssignAccountManager(leadId, userId);
+      await fetchPagedLeads();
+    },
+    [handleAssignAccountManager, fetchPagedLeads]
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
@@ -144,7 +154,7 @@ export default function LeadList() {
         users={users}
         usersLoading={usersLoading}
         assigning={assigning}
-        onAssignAM={handleAssignAccountManager}
+        onAssignAM={handleAssignAMAndRefresh}
         onOpenDetails={openDetails}
         onViewLead={handleViewLead}
         onEditLead={handleEditLead}
