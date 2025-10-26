@@ -15,7 +15,8 @@ export default function LeadTable({
   onDeleteLead,
   onQuickFormSubmit, // NEW
   page = 1,
-  pageSize = 10
+  pageSize = 10,
+  onChangeStatus,
 }) {
   const hasLeads = (leads || []).length > 0;
 
@@ -53,6 +54,7 @@ export default function LeadTable({
                 onEditLead={onEditLead}
                 onDeleteLead={onDeleteLead}
                 onQuickFormSubmit={onQuickFormSubmit} // NEW
+                onChangeStatus={onChangeStatus}
               />
             ))
           ) : (

@@ -96,6 +96,14 @@ export default function LeadList() {
 
   const handleViewLead = (id) => navigate(`/leads/${id}/edit`);
 
+  const handleChangeStatus = useCallback(
+    async (leadId, status) => {
+      await LeadsApi.updateStatus(leadId, status);
+      await fetchPagedLeads();
+    },
+    [fetchPagedLeads]
+  );
+
 
     // ✅ NEW: wrap AM assignment so it refreshes the list
   const handleAssignAMAndRefresh = useCallback(
@@ -162,6 +170,7 @@ export default function LeadList() {
         onQuickFormSubmit={handleQuickFormSubmit}
         page={page}               // 👈 add this
         pageSize={pageSize}       // 👈 and this
+        onChangeStatus={handleChangeStatus}
       />
 
       {/* Pagination */}

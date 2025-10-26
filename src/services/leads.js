@@ -166,6 +166,19 @@ export const LeadsApi = {
   commentBulkUpsert: async (rows) => {
     const res = await api.post("/api/v1/leads/bulk-comment-importer", { comments: rows });
     return res.data;
-  }
+  },
+
+   // ✅ add this generic updater (your LeadList already calls LeadsApi.update)
+  update: async (id, payload) => {
+    const res = await api.put(`${BASE}/${id}`, payload);
+    return res.data;
+  },
+
+    // ✅ convenience method to change status only
+  updateStatus: async (id, status) => {
+    const res = await api.patch(`${BASE}/${id}/status`, { status }); // <-- changed to PATCH + /status
+    return res.data;
+  },
+
 
 };
