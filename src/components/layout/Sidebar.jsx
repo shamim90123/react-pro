@@ -5,7 +5,8 @@ import { useEffect, useMemo, useState } from "react";
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: "🏠" },
   { to: "/leads", label: "Universities", icon: "🎓" },
-  { to: "/import-lead", label: "Universities Importer", icon: "🎓" },
+  { to: "/lead-importer", label: "Universities Importer", icon: "🎓" },
+  { to: "/comment-importer", label: "Comments Importer", icon: "💬" },
   { to: "/users", label: "Users", icon: "👥" },
 ];
 

@@ -7,7 +7,7 @@ export default function Pagination({
   total,
   onPageChange,
   onPageSizeChange,
-  pageSizeOptions = [10, 20, 50],
+  pageSizeOptions = [10, 20, 50, 100],
   showRange = true,
   showFirstLast = true,
   disabled = false,

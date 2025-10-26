@@ -1,4 +1,5 @@
 // src/lib/leads.js
+import { comment } from "postcss";
 import api from "./api";
 
 const BASE = "/api/v1/leads";
@@ -29,7 +30,7 @@ export const LeadsApi = {
 
     return { data: items, meta };
   },
-  
+
   get: async (id) => {
     const res = await api.get(`${BASE}/${id}`);
     return res.data;
@@ -69,7 +70,7 @@ export const LeadsApi = {
     await api.delete(`${CONTACTS_FLAT}/${contactId}`);
     return null; // 204
   },
-  
+
   setPrimaryContact: async (contactId) => {
     const res = await api.post(`${CONTACTS_FLAT}/${contactId}/primary`);
     return res.data;
@@ -148,7 +149,7 @@ export const LeadsApi = {
     });
     return res.data; // <-- Axios response body
   },
-  
+
   // ----- Countries -----
   getCountries: async () => {
     const res = await api.get(`/api/v1/countries`);
@@ -159,6 +160,12 @@ export const LeadsApi = {
   bulkUpsert: async (rows) => {
     const res = await api.post("/api/v1/leads/bulk-importer", { leads: rows });
     return res.data; // { message, data: [...] }
+  },
+
+  // commentBulkUpsert
+  commentBulkUpsert: async (rows) => {
+    const res = await api.post("/api/v1/leads/bulk-comment-importer", { comments: rows });
+    return res.data;
   }
 
 };
