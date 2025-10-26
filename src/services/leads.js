@@ -122,6 +122,12 @@ export const LeadsApi = {
     return res.status === 204 ? null : res.data;
   },
 
+  updateComment: async (leadId, commentId, payload) => {
+    const url = `${COMMENT_BASE.replace("{leadId}", leadId)}/${commentId}`;
+    const res = await api.patch?.(url, payload).catch(async () => api.put(url, payload));
+    return res.data; // updated comment object or { comment: {...} }
+  },
+
   // ----- Products -----
   assignProducts: async (leadId, productIds = []) => {
     const res = await api.put(`${BASE}/${leadId}/products`, {

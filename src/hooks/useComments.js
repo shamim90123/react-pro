@@ -23,6 +23,9 @@ export function useComments(leadId, initialPerPage = 10) {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
+  
 
   const fetchPage = async (p = 1) => {
     setLoading(true);
@@ -121,6 +124,42 @@ export function useComments(leadId, initialPerPage = 10) {
     }
   };
 
+
+const edit = async (commentId, newText) => {
+  const text = newText?.trim();
+  if (!text) return SweetAlert.error("Write a comment first");
+
+  const idx = items.findIndex((c) => c.id === commentId);
+  if (idx === -1) return;
+
+  const prevItems = items;
+  const optimistic = { ...items[idx], comment: text, updated_at: new Date().toISOString() };
+
+  // optimistic update
+  setItems((cur) => {
+    const next = [...cur];
+    next[idx] = optimistic;
+    return next;
+  });
+
+  try {
+    const res = await LeadsApi.updateComment(leadId, commentId, { comment: text });
+    const updated = res?.comment ?? (Array.isArray(res?.data) ? res.data[0] : res?.data) ?? res ?? optimistic;
+    setItems((cur) => {
+      const i = cur.findIndex((c) => c.id === commentId);
+      if (i === -1) return cur;
+      const next = [...cur];
+      next[i] = { ...optimistic, ...updated };
+      return next;
+    });
+    SweetAlert.success("Comment updated");
+  } catch (e) {
+    console.error(e);
+    setItems(prevItems); // rollback
+    SweetAlert.error(e.message || "Failed to update comment");
+  }
+};
+
   return {
     items,
     meta,
@@ -129,5 +168,8 @@ export function useComments(leadId, initialPerPage = 10) {
     loading: loading || adding,
     add,
     remove,
+    edit,
+    editingId,
+    setEditingId,
   };
 }

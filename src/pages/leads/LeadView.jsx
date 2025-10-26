@@ -61,6 +61,7 @@ export default function LeadView() {
     loading: loadingComments,
     add: addComment,
     remove: removeComment,
+    edit: editComment,         
   } = useComments(leadId, COMMENTS_PAGE_SIZE);
 
   if (!lead) {
@@ -144,6 +145,7 @@ export default function LeadView() {
         onPageChange={setCommentsPage}
         onAdd={addComment}
         onDelete={removeComment}
+        onEdit={editComment}  
       />
     </div>
   );
