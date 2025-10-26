@@ -21,7 +21,9 @@ export default function LeadTable({
   const hasLeads = (leads || []).length > 0;
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+    <div className="relative overflow-x-auto overflow-y-visible rounded-lg border border-gray-200 bg-white shadow-sm">
+
+    {/* <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm"> */}
       <table className="min-w-full text-left text-sm text-gray-700">
         <thead className="bg-gray-100 text-xs font-semibold uppercase text-gray-600">
           <tr>

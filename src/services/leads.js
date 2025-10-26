@@ -14,10 +14,43 @@ export const LeadsApi = {
   //   const res = await api.get(BASE, { params: { page, per_page: perPage, ...(q ? { q } : {}) } });
   //   return res.data; // Laravel paginator (data, meta, links)
   // },
-  list: async ({ page = 1, perPage = 10, q = "" } = {}) => {
-    const res = await api.get(BASE, {
-      params: { page, per_page: perPage, ...(q ? { q } : {}) },
-    });
+  // list: async ({ page = 1, perPage = 10, q = "" } = {}) => {
+  //   const res = await api.get(BASE, {
+  //     params: { page, per_page: perPage, ...(q ? { q } : {}) },
+  //   });
+
+  //   const raw = res.data || {};
+  //   const items = raw.data ?? raw.items ?? [];
+  //   const meta = raw.meta ?? {
+  //     current_page: raw.current_page ?? 1,
+  //     per_page: raw.per_page ?? perPage,
+  //     total: raw.total ?? items.length,
+  //     last_page: raw.last_page ?? Math.max(1, Math.ceil((raw.total ?? items.length) / (raw.per_page ?? perPage))),
+  //   };
+
+  //   return { data: items, meta };
+  // },
+
+  list: async ({
+    page = 1,
+    perPage = 10,
+    q = "",
+    leadName = "",
+    city = "",
+    status = "",
+    destinationId = "",
+  } = {}) => {
+    const params = {
+      page,
+      per_page: perPage,
+      ...(q ? { q } : {}),
+      ...(leadName ? { lead_name: leadName } : {}),
+      ...(city ? { city } : {}),
+      ...(status !== "" && status !== null && status !== undefined ? { status } : {}),
+      ...(destinationId ? { destination: destinationId } : {}),
+    };
+
+    const res = await api.get(BASE, { params });
 
     const raw = res.data || {};
     const items = raw.data ?? raw.items ?? [];
@@ -25,7 +58,9 @@ export const LeadsApi = {
       current_page: raw.current_page ?? 1,
       per_page: raw.per_page ?? perPage,
       total: raw.total ?? items.length,
-      last_page: raw.last_page ?? Math.max(1, Math.ceil((raw.total ?? items.length) / (raw.per_page ?? perPage))),
+      last_page:
+        raw.last_page ??
+        Math.max(1, Math.ceil((raw.total ?? items.length) / (raw.per_page ?? perPage))),
     };
 
     return { data: items, meta };

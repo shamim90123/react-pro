@@ -1,28 +1,23 @@
 // src/pages/leads/table/LeadRow.jsx
 import { useState, useCallback, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import AccountManagerCell from "../AccountManagerCell";
 import LeadActions from "../LeadActions";
 import InlineLeadProductMatrix from "./InlineLeadProductMatrix";
 
 function StatusPill({ value }) {
+  const base =
+    "inline-block rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap";
+
   if (value == 1)
-    return (
-      <span className="inline-block rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
-        Active
-      </span>
-    );
+    return <span className={`${base} bg-blue-100 text-blue-800`}>Active</span>;
+
   if (value == 2)
-    return (
-      <span className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-        On Hold
-      </span>
-    );
-  return (
-    <span className="inline-block rounded-full bg-gray-200 px-3 py-1 text-xs font-semibold text-gray-700">
-      Inactive
-    </span>
-  );
+    return <span className={`${base} bg-amber-100 text-amber-800`}>On Hold</span>;
+
+  return <span className={`${base} bg-gray-200 text-gray-700`}>Inactive</span>;
 }
+
 
 export default function LeadRow({
   index,
@@ -36,7 +31,6 @@ export default function LeadRow({
   onEditLead,
   onDeleteLead,
   onQuickFormSubmit,
-  // ✅ NEW
   onChangeStatus,
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -46,29 +40,54 @@ export default function LeadRow({
   const [stOpen, setStOpen] = useState(false);
   const stBtnRef = useRef(null);
   const stMenuRef = useRef(null);
+  const [pos, setPos] = useState({ top: 0, left: 0, width: 160 });
+
+  const calcAndSetPos = useCallback(() => {
+    const btn = stBtnRef.current;
+    if (!btn) return;
+    const r = btn.getBoundingClientRect();
+    const menuWidth = 160; // w-40
+    const gap = 8;
+
+    // keep inside viewport
+    const left = Math.min(
+      Math.max(8, r.left + window.scrollX),
+      window.scrollX + window.innerWidth - menuWidth - 8
+    );
+    const top = r.bottom + window.scrollY + gap;
+
+    setPos({ top, left, width: menuWidth });
+  }, []);
 
   useEffect(() => {
     if (!stOpen) return;
+    calcAndSetPos();
+
     const onDown = (e) => {
       const t = e.target;
       if (stBtnRef.current?.contains(t)) return;
       if (stMenuRef.current?.contains(t)) return;
       setStOpen(false);
     };
-    const onEsc = (e) => e.key === "Escape" && setStOpen(false);
+    const onKey = (e) => e.key === "Escape" && setStOpen(false);
+    const onScroll = () => calcAndSetPos();
+    const onResize = () => calcAndSetPos();
+
     window.addEventListener("pointerdown", onDown, true);
-    window.addEventListener("keydown", onEsc);
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, true);
+    window.addEventListener("resize", onResize);
+
     return () => {
       window.removeEventListener("pointerdown", onDown, true);
-      window.removeEventListener("keydown", onEsc);
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll, true);
+      window.removeEventListener("resize", onResize);
     };
-  }, [stOpen]);
+  }, [stOpen, calcAndSetPos]);
 
   const handlePick = async (val) => {
-    if (val === lead.status) {
-      setStOpen(false);
-      return;
-    }
+    if (val === lead.status) return setStOpen(false);
     await onChangeStatus?.(lead.id, val);
     setStOpen(false);
   };
@@ -88,7 +107,7 @@ export default function LeadRow({
           handleAssignAccountManager={onAssignAM}
         />
 
-        {/* University Name + City -> now toggles expander */}
+        {/* University */}
         <td className="px-6 py-3 font-medium text-gray-900">
           <button
             type="button"
@@ -112,9 +131,7 @@ export default function LeadRow({
               </span>
               <span className="text-xs text-gray-500">{lead?.city || "—"}</span>
             </div>
-            <span className="ml-auto text-xs text-gray-400">
-              {expanded ? "Hide" : ""}
-            </span>
+            <span className="ml-auto text-xs text-gray-400">{expanded ? "Hide" : ""}</span>
           </button>
         </td>
 
@@ -142,49 +159,17 @@ export default function LeadRow({
           </button>
         </td>
 
-        {/* Status (clickable pill with dropdown) */}
+        {/* Status (pill + portal menu) */}
         <td className="relative px-6 py-3">
           <button
             ref={stBtnRef}
             type="button"
             onClick={() => setStOpen((v) => !v)}
-            className="focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full"
+            className="rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-500"
             title="Change status"
           >
             <StatusPill value={lead.status} />
           </button>
-
-          {stOpen && (
-            <div
-              ref={stMenuRef}
-              className="absolute z-[1000] mt-2 w-40 overflow-hidden rounded-lg border border-gray-100 bg-white shadow-xl"
-            >
-              <button
-                className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
-                  lead.status == 1 ? "text-blue-700 font-semibold" : "text-gray-800"
-                }`}
-                onClick={() => handlePick(1)}
-              >
-                Active
-              </button>
-              <button
-                className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
-                  lead.status == 2 ? "text-amber-700 font-semibold" : "text-gray-800"
-                }`}
-                onClick={() => handlePick(2)}
-              >
-                On Hold
-              </button>
-              <button
-                className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
-                  lead.status == 0 ? "text-gray-700 font-semibold" : "text-gray-800"
-                }`}
-                onClick={() => handlePick(0)}
-              >
-                Inactive
-              </button>
-            </div>
-          )}
         </td>
 
         {/* Actions */}
@@ -198,10 +183,51 @@ export default function LeadRow({
         </td>
       </tr>
 
+      {/* Portal menu */}
+      {stOpen &&
+        createPortal(
+          <div
+            ref={stMenuRef}
+            style={{
+              position: "fixed",
+              top: `${pos.top}px`,
+              left: `${pos.left}px`,
+              width: `${pos.width}px`,
+              zIndex: 1000,
+            }}
+            className="overflow-hidden rounded-lg border border-gray-100 bg-white shadow-xl"
+          >
+            <button
+              className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
+                lead.status == 1 ? "text-blue-700 font-semibold" : "text-gray-800"
+              }`}
+              onClick={() => handlePick(1)}
+            >
+              Active
+            </button>
+            <button
+              className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
+                lead.status == 2 ? "text-amber-700 font-semibold" : "text-gray-800"
+              }`}
+              onClick={() => handlePick(2)}
+            >
+              On Hold
+            </button>
+            <button
+              className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
+                lead.status == 0 ? "text-gray-700 font-semibold" : "text-gray-800"
+              }`}
+              onClick={() => handlePick(0)}
+            >
+              Inactive
+            </button>
+          </div>,
+          document.body
+        )}
+
       {/* Expander Row */}
       {expanded && (
         <tr className="bg-indigo-50/40">
-          {/* SL + AM + Name + Contacts + Notes + Status + Actions = 7 columns */}
           <td colSpan={7} className="px-6 py-4">
             <InlineLeadProductMatrix
               lead={lead}

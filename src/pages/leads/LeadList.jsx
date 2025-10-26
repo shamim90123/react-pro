@@ -1,5 +1,5 @@
 // src/pages/leads/LeadList.jsx
-import { useEffect, useState, useCallback } from "react";
+import { useMemo, useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import LeadForm from "./LeadForm";
 import LeadDetailsModal from "./LeadListModal";
@@ -7,6 +7,7 @@ import LeadTable from "./table/LeadTable";
 import Pagination from "@/components/layout/Pagination";
 import { useLeads } from "./hooks/useLeads";
 import { LeadsApi } from "@/services/leads";
+import LeadSearchPanel from "./LeadSearchPanel";
 
 export default function LeadList() {
   const navigate = useNavigate();
@@ -38,37 +39,50 @@ export default function LeadList() {
     handleDeleteLead,
   } = useLeads();
 
-  // ------ NEW: local pagination state for list ------
+  // ------ Local state for pagination and filtering ------
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [total, setTotal] = useState(0);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [q, setQ] = useState(""); // optional search term if you add a search box
 
+  // Filters
+  const [leadName, setLeadName] = useState("");
+  const [status, setStatus] = useState("");
+  const [destinationId, setDestinationId] = useState("");
+
+  // Build quick dropdown list of university names (from current data)
+  const uniOptions = useMemo(() => {
+    const s = new Set(rows.map((r) => r?.lead_name).filter(Boolean));
+    return Array.from(s).sort((a, b) => a.localeCompare(b));
+  }, [rows]);
+
+  // ---------- Fetch paged leads ----------
   const fetchPagedLeads = useCallback(async () => {
     setLoading(true);
     try {
-      const { data, meta } = await LeadsApi.list({ page, perPage: pageSize, q });
+      const { data, meta } = await LeadsApi.list({
+        page,
+        perPage: pageSize,
+        leadName,
+        status: status === "" ? "" : Number(status),
+        destinationId,
+      });
       setRows(data || []);
       setTotal(meta?.total ?? 0);
-      // guard against out-of-range states after deletes/filters
-      if (meta?.current_page && meta.current_page !== page) {
-        setPage(meta.current_page);
-      }
+      if (meta?.current_page && meta.current_page !== page) setPage(meta.current_page);
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, q]);
+  }, [page, pageSize, leadName, status, destinationId]);
 
   useEffect(() => {
     fetchPagedLeads();
   }, [fetchPagedLeads]);
 
-  // If you delete a lead, refresh the current page
+  // ---------- Actions ----------
   const handleAfterDelete = async (id) => {
     await handleDeleteLead(id);
-    // if the page becomes empty (e.g., last item deleted), go back a page
     if (rows.length === 1 && page > 1) {
       setPage((p) => p - 1);
     } else {
@@ -104,8 +118,6 @@ export default function LeadList() {
     [fetchPagedLeads]
   );
 
-
-    // ✅ NEW: wrap AM assignment so it refreshes the list
   const handleAssignAMAndRefresh = useCallback(
     async (leadId, userId) => {
       await handleAssignAccountManager(leadId, userId);
@@ -114,6 +126,14 @@ export default function LeadList() {
     [handleAssignAccountManager, fetchPagedLeads]
   );
 
+  const resetFilters = () => {
+    setLeadName("");
+    setStatus("");
+    setDestinationId("");
+    setPage(1);
+  };
+
+  // ---------- Render ----------
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       {/* Header */}
@@ -127,17 +147,7 @@ export default function LeadList() {
         </button>
       </div>
 
-      {/* Optional: simple search box that resets to page 1 */}
-      {/* <div className="mb-4">
-        <input
-          value={q}
-          onChange={(e) => { setQ(e.target.value); setPage(1); }}
-          placeholder="Search by name or city…"
-          className="w-full max-w-xs rounded-md border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-      </div> */}
-
-      {/* Form */}
+      {/* Create / Edit Form */}
       {showLeadForm && (
         <div className="pb-8">
           <LeadForm
@@ -147,13 +157,32 @@ export default function LeadList() {
             onCancel={toggleLeadForm}
             onSubmit={async (payload) => {
               await handleUniversityFormSubmit(payload);
-              // after create/update, reload first page to show newest (or keep current page)
               fetchPagedLeads();
             }}
             countries={countries}
           />
         </div>
       )}
+
+      {/* Search Panel */}
+      <LeadSearchPanel
+        uniOptions={uniOptions}
+        countries={countries}
+        leadName={leadName}
+        setLeadName={setLeadName}
+        status={status}
+        setStatus={setStatus}
+        destinationId={destinationId}
+        setDestinationId={setDestinationId}
+        onApply={() => {
+          setPage(1);
+          fetchPagedLeads();
+        }}
+        onReset={() => {
+          resetFilters();
+          fetchPagedLeads();
+        }}
+      />
 
       {/* Table */}
       <LeadTable
@@ -168,8 +197,8 @@ export default function LeadList() {
         onEditLead={handleEditLead}
         onDeleteLead={handleAfterDelete}
         onQuickFormSubmit={handleQuickFormSubmit}
-        page={page}               // 👈 add this
-        pageSize={pageSize}       // 👈 and this
+        page={page}
+        pageSize={pageSize}
         onChangeStatus={handleChangeStatus}
       />
 
@@ -182,7 +211,7 @@ export default function LeadList() {
         onPageChange={setPage}
         onPageSizeChange={(n) => {
           setPageSize(n);
-          setPage(1); // reset to first page on page-size change
+          setPage(1);
         }}
       />
 
