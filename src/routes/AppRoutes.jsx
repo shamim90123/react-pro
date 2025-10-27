@@ -26,6 +26,12 @@ import ProductFormPage from "@/pages/products/form.jsx";
 import SaleStageList from "@/pages/sale_stages/list.jsx";
 import SaleStageFormPage from "@/pages/sale_stages/form.jsx";
 
+
+import ForgotPassword from "@/pages/auth/ForgotPassword";
+import ResetPassword from "@/pages/auth/ResetPassword";
+import ChangePassword from "@/pages/auth/ChangePassword";
+
+
 // Optional NotFound
 import NotFound from "@/pages/NotFound.jsx";
 
@@ -34,6 +40,11 @@ export const appRoutes = [
     element: <PublicOnlyRoute />,
     children: [
       { path: "/login", element: <Login /> },
+      { path: "/forgot-password", element: <ForgotPassword /> },
+      { path: "/reset-password", element: <ResetPassword /> },
+      // { path: "/change-password", element: <ChangePassword /> },
+      
+      
     ],
   },
   {
@@ -43,6 +54,7 @@ export const appRoutes = [
         element: <DashboardLayout />,
         children: [
           { path: "/dashboard", element: <Dashboard /> },
+          { path: "/change-password", element: <ChangePassword /> },
 
           // Leads
           { path: "/leads", element: <LeadList /> },
