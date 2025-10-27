@@ -4,6 +4,23 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
+
+function getInitials(nameLike) {
+  if (!nameLike) return "U";
+  const parts = String(nameLike).trim().split(/\s+/).slice(0, 2);
+  return parts.map(p => p[0]?.toUpperCase() || "").join("") || "U";
+}
+
+function nameFromUser(user) {
+  if (!user) return "";
+  if (user.name) return user.name;
+  if (user.full_name) return user.full_name;
+  if (user.first_name || user.last_name) return `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
+  if (user.username) return user.username;
+  if (user.email) return user.email.split("@")[0];
+  return "";
+}
+
 export default function Header({ onToggleSidebar }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -69,9 +86,11 @@ export default function Header({ onToggleSidebar }) {
     navigate("/login", { replace: true });
   };
 
-  const displayName = user?.name || "John Doe";
-  const displayEmail = user?.email || "john.doe@email.com";
-  const avatar = user?.avatar || "https://i.pravatar.cc/80?img=1";
+  // 🎯 Use the logged-in user's info with smart fallbacks
+  const computedName = nameFromUser(user);
+  const displayName = computedName || "User";
+  const displayEmail = user?.email || user?.username || "";
+  const avatarUrl = user?.avatar || ""; // may be empty; show initials avatar below
 
   return (
     <header className="sticky top-0 z-40 bg-[var(--color-background)] border-b border-gray-200">
@@ -105,15 +124,6 @@ export default function Header({ onToggleSidebar }) {
 
         {/* Right cluster */}
         <div className="flex items-center gap-3">
-          {/* Theme toggle left as-is (commented) */}
-          {/* <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg hover:bg-gray-100 transition"
-            aria-label="Toggle theme"
-          >
-            {theme === "light" ? "🌞" : "🌙"}
-          </button> */}
-
           {/* User Dropdown */}
           <div className="relative">
             <button
@@ -124,11 +134,22 @@ export default function Header({ onToggleSidebar }) {
               aria-expanded={menuOpen}
               aria-controls="user-menu"
             >
-              <img
-                src={avatar}
-                alt={`${displayName} avatar`}
-                className="h-8 w-8 rounded-full ring-1 ring-gray-200 transition group-hover:ring-indigo-300"
-              />
+              {/* Avatar or Initials */}
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt={`${displayName} avatar`}
+                  className="h-8 w-8 rounded-full ring-1 ring-gray-200 transition group-hover:ring-indigo-300 object-cover"
+                />
+              ) : (
+                <div
+                  aria-hidden
+                  className="h-8 w-8 rounded-full ring-1 ring-gray-200 bg-indigo-600 text-white grid place-items-center text-xs font-semibold"
+                  title={displayName}
+                >
+                  {getInitials(displayName)}
+                </div>
+              )}
               <svg
                 className={`h-4 w-4 text-gray-500 transition-transform ${
                   menuOpen ? "rotate-180" : ""
@@ -163,59 +184,45 @@ export default function Header({ onToggleSidebar }) {
                 <div className="relative border-b border-gray-100">
                   <div className="h-12 bg-gradient-to-r from-indigo-50 via-slate-50 to-emerald-50" />
                   <div className="px-4 pb-3 -mt-6 flex items-center gap-3">
-                    <img
-                      src={avatar}
-                      alt={`${displayName} avatar`}
-                      className="h-12 w-12 rounded-full border border-white shadow-md"
-                    />
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt={`${displayName} avatar`}
+                        className="h-12 w-12 rounded-full border border-white shadow-md object-cover"
+                      />
+                    ) : (
+                      <div className="h-12 w-12 rounded-full border border-white shadow-md bg-indigo-600 text-white grid place-items-center text-sm font-semibold">
+                        {getInitials(displayName)}
+                      </div>
+                    )}
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-gray-900">
                         {displayName}
                       </p>
-                      <p className="truncate text-xs text-gray-500">
-                        {displayEmail}
-                      </p>
+                      {!!displayEmail && (
+                        <p className="truncate text-xs text-gray-500">
+                          {displayEmail}
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
 
                 {/* Menu items */}
                 <div className="py-1">
-                  {/* <Link
-                    to="/profile"
-                    role="menuitem"
-                    ref={firstItemRef}
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                    tabIndex={0}
-                  >
-                    <span aria-hidden>👤</span>
-                    Profile
-                  </Link> */}
-
-                  <Link
-                    to="/change-password"
-                    role="menuitem"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                    tabIndex={-1}
-                  >
-                    <span aria-hidden>🔒</span>
-                    Change Password
-                  </Link>
+                 <Link
+  to="/change-password"
+  role="menuitem"
+  ref={firstItemRef}
+  onClick={() => setMenuOpen(false)}
+  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+  tabIndex={0}
+>
+  <span aria-hidden>🔒</span>
+  Change Password
+</Link>
 
                   <div className="my-1 mx-3 h-px bg-gray-100" />
-
-                  {/* <Link
-                    to="/settings"
-                    role="menuitem"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                    tabIndex={-1}
-                  >
-                    <span aria-hidden>⚙️</span>
-                    Settings
-                  </Link> */}
 
                   <button
                     type="button"

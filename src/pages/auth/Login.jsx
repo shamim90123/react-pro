@@ -28,10 +28,13 @@ export default function Login() {
         password: form.password,
       });
 
-      const accessToken = data?.access_token || data?.token || data?.data?.token;
+      // const accessToken = data?.access_token || data?.token || data?.data?.token;
+      const accessToken = data?.token || data?.access_token || data?.data?.token;
+      const me = data?.user || data?.data?.user || null;
       if (!accessToken) throw new Error("No token returned from API.");
 
-      await login({ token: accessToken, remember: form.remember });
+      // await login({ token: accessToken, remember: form.remember });
+      await login({ token: accessToken, remember: form.remember, me });
 
       SweetAlert.success("Signed in successfully");
       const to = location.state?.from?.pathname || "/dashboard";
