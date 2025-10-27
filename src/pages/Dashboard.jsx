@@ -179,7 +179,7 @@ export default function Overview() {
       {/* Small lists */}
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border border-gray-200 p-5">
-          <h3 className="text-sm font-semibold text-gray-900">Top Products by Lead Usage</h3>
+          <h3 className="text-sm font-semibold text-gray-900">Top Products by University Usage</h3>
           <ul className="mt-3 space-y-2">
             {(loading ? [] : stats.top_products).map((p) => (
               <li key={p.product_id} className="flex items-center justify-between text-sm">
