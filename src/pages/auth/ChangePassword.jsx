@@ -127,7 +127,6 @@ export default function ChangePassword() {
                   ? "border-red-300 focus:ring-red-400"
                   : "border-gray-300 focus:ring-blue-500"
               }`}
-              placeholder="••••••••"
               autoComplete="current-password"
             />
             {touched.current && errors.current && (
@@ -151,7 +150,6 @@ export default function ChangePassword() {
                   ? "border-red-300 focus:ring-red-400"
                   : "border-gray-300 focus:ring-blue-500"
               }`}
-              placeholder="••••••••"
               autoComplete="new-password"
             />
             <p className="mt-1 text-[11px] text-gray-500">
@@ -178,7 +176,6 @@ export default function ChangePassword() {
                   ? "border-red-300 focus:ring-red-400"
                   : "border-gray-300 focus:ring-blue-500"
               }`}
-              placeholder="••••••••"
               autoComplete="new-password"
             />
             {touched.next2 && errors.next2 && (
