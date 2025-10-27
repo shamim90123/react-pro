@@ -1,26 +1,42 @@
-// src/components/layout/Header.jsx
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { useTheme } from "@/context/ThemeContext";
 
-
+// --------------------- Helper Functions ---------------------
 function getInitials(nameLike) {
   if (!nameLike) return "U";
   const parts = String(nameLike).trim().split(/\s+/).slice(0, 2);
-  return parts.map(p => p[0]?.toUpperCase() || "").join("") || "U";
+  return parts.map((p) => p[0]?.toUpperCase() || "").join("") || "U";
 }
 
 function nameFromUser(user) {
   if (!user) return "";
   if (user.name) return user.name;
   if (user.full_name) return user.full_name;
-  if (user.first_name || user.last_name) return `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
+  if (user.first_name || user.last_name)
+    return `${user.first_name ?? ""} ${user.last_name ?? ""}`.trim();
   if (user.username) return user.username;
   if (user.email) return user.email.split("@")[0];
   return "";
 }
 
+function prettyRoleName(name = "") {
+  return String(name)
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase()); // Title Case
+}
+
+function roleNamesFromUser(user) {
+  const fromArray = Array.isArray(user?.roles)
+    ? user.roles.map((r) => r?.name).filter(Boolean)
+    : [];
+  if (fromArray.length) return fromArray;
+  if (user?.primary_role) return [user.primary_role];
+  return [];
+}
+
+// --------------------- Component ---------------------
 export default function Header({ onToggleSidebar }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
@@ -28,9 +44,9 @@ export default function Header({ onToggleSidebar }) {
   const firstItemRef = useRef(null);
   const navigate = useNavigate();
   const { logout, user } = useAuth() || {};
-  const { theme /*, toggleTheme*/ } = useTheme();
+  const { theme } = useTheme();
 
-  // Close on outside click / Esc
+  // Close dropdown on outside click or Escape key
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!menuOpen) return;
@@ -52,7 +68,7 @@ export default function Header({ onToggleSidebar }) {
     };
   }, [menuOpen]);
 
-  // Simple keyboard nav (Up/Down)
+  // Simple keyboard navigation inside dropdown
   useEffect(() => {
     const onKey = (e) => {
       if (!menuOpen || !menuRef.current) return;
@@ -76,7 +92,7 @@ export default function Header({ onToggleSidebar }) {
     return () => document.removeEventListener("keydown", onKey);
   }, [menuOpen]);
 
-  // Focus first item when opening
+  // Focus first item when menu opens
   useEffect(() => {
     if (menuOpen) setTimeout(() => firstItemRef.current?.focus(), 30);
   }, [menuOpen]);
@@ -86,16 +102,19 @@ export default function Header({ onToggleSidebar }) {
     navigate("/login", { replace: true });
   };
 
-  // 🎯 Use the logged-in user's info with smart fallbacks
+  // --------------------- Derived Data ---------------------
   const computedName = nameFromUser(user);
   const displayName = computedName || "User";
   const displayEmail = user?.email || user?.username || "";
-  const avatarUrl = user?.avatar || ""; // may be empty; show initials avatar below
+  const avatarUrl = user?.avatar || "";
+  const roleNames = roleNamesFromUser(user);
+  const roleLabel = roleNames.map(prettyRoleName).join(", ");
 
+  // --------------------- JSX ---------------------
   return (
     <header className="sticky top-0 z-40 bg-[var(--color-background)] border-b border-gray-200">
       <div className="h-14 px-4 flex items-center justify-between">
-        {/* Mobile: sidebar toggle */}
+        {/* Sidebar Toggle (Mobile) */}
         <button
           onClick={onToggleSidebar}
           className="md:hidden p-2 rounded-lg hover:bg-gray-100"
@@ -111,7 +130,7 @@ export default function Header({ onToggleSidebar }) {
           </svg>
         </button>
 
-        {/* Brand / Home */}
+        {/* Logo */}
         <Link to="/dashboard" className="flex items-center gap-2">
           <img
             src="/img/logo.png"
@@ -122,7 +141,7 @@ export default function Header({ onToggleSidebar }) {
           />
         </Link>
 
-        {/* Right cluster */}
+        {/* Right Section */}
         <div className="flex items-center gap-3">
           {/* User Dropdown */}
           <div className="relative">
@@ -150,6 +169,17 @@ export default function Header({ onToggleSidebar }) {
                   {getInitials(displayName)}
                 </div>
               )}
+
+              {/* Optional inline role badge */}
+              {roleLabel && (
+                <span className="hidden sm:inline-block rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-700">
+                  {roleNames.length === 1
+                    ? prettyRoleName(roleNames[0])
+                    : "Roles"}
+                </span>
+              )}
+
+              {/* Caret */}
               <svg
                 className={`h-4 w-4 text-gray-500 transition-transform ${
                   menuOpen ? "rotate-180" : ""
@@ -162,7 +192,7 @@ export default function Header({ onToggleSidebar }) {
               </svg>
             </button>
 
-            {/* Animated Popover */}
+            {/* Dropdown Menu */}
             <div
               className={`absolute right-0 z-50 mt-2 w-72 origin-top-right transition-all duration-150 ${
                 menuOpen
@@ -196,9 +226,16 @@ export default function Header({ onToggleSidebar }) {
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-gray-900">
-                        {displayName}
-                      </p>
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-semibold text-gray-900">
+                          {displayName}
+                        </p>
+                        {roleLabel && (
+                          <span className="shrink-0 rounded-full border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-700">
+                            {roleLabel}
+                          </span>
+                        )}
+                      </div>
                       {!!displayEmail && (
                         <p className="truncate text-xs text-gray-500">
                           {displayEmail}
@@ -208,19 +245,19 @@ export default function Header({ onToggleSidebar }) {
                   </div>
                 </div>
 
-                {/* Menu items */}
+                {/* Menu Items */}
                 <div className="py-1">
-                 <Link
-  to="/change-password"
-  role="menuitem"
-  ref={firstItemRef}
-  onClick={() => setMenuOpen(false)}
-  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-  tabIndex={0}
->
-  <span aria-hidden>🔒</span>
-  Change Password
-</Link>
+                  <Link
+                    to="/change-password"
+                    role="menuitem"
+                    ref={firstItemRef}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                    tabIndex={0}
+                  >
+                    <span aria-hidden>🔒</span>
+                    Change Password
+                  </Link>
 
                   <div className="my-1 mx-3 h-px bg-gray-100" />
 
