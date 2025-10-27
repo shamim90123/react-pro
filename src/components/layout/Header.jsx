@@ -181,7 +181,7 @@ export default function Header({ onToggleSidebar }) {
 
                 {/* Menu items */}
                 <div className="py-1">
-                  <Link
+                  {/* <Link
                     to="/profile"
                     role="menuitem"
                     ref={firstItemRef}
@@ -191,7 +191,7 @@ export default function Header({ onToggleSidebar }) {
                   >
                     <span aria-hidden>👤</span>
                     Profile
-                  </Link>
+                  </Link> */}
 
                   <Link
                     to="/change-password"
