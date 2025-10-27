@@ -152,7 +152,7 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
             ) : (
               <tr>
                 <td className="px-3 py-4 text-center text-xs text-gray-400" colSpan={4}>
-                  No products found for this lead
+                  No products found for this University
                 </td>
               </tr>
             )}
