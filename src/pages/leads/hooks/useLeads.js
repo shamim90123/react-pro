@@ -53,8 +53,8 @@ export function useLeads() {
       const res = await LeadsApi.list({ page: 1, perPage: 10 });
       setLeads(res.data || []);
     } catch (err) {
-      console.error("Error fetching leads", err);
-      SweetAlert.error("Failed to fetch leads");
+      // console.error("Error fetching leads", err.message);
+      SweetAlert.error(err.message || "Failed to fetch leads");
     } finally {
       setLoading(false);
     }

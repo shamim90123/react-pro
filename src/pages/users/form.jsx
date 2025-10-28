@@ -6,6 +6,7 @@ import { SweetAlert } from "@/components/ui/SweetAlert";
 
 const ROLES = [
   { label: "Admin", value: "admin" },
+  { label: "User", value: "user" },
   { label: "Manager", value: "manager" },
   { label: "Staff", value: "staff" },
   { label: "Viewer", value: "viewer" },
@@ -20,7 +21,7 @@ export default function UserFormPage() {
     name: "",
     email: "",
     password: "",
-    role: "staff",
+    role: "admin",
   });
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -34,7 +35,7 @@ export default function UserFormPage() {
           name: data?.name ?? "",
           email: data?.email ?? "",
           password: "", // keep empty for edit
-          role: data?.roles[0] ?? "staff",
+          role: data?.roles[0] ?? "admin",
         });
       } catch (e) {
         SweetAlert.error(e?.message || "Failed to load user");
