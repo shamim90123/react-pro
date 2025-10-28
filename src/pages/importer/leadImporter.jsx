@@ -173,13 +173,13 @@ export default function LeadImporterSimple() {
                             <>
                               <button
                                 onClick={saveEdit}
-                                className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white"
+                                className="btn-primary text-xs px-3 py-1.5"
                               >
                                 Save
                               </button>
                               <button
                                 onClick={cancelEdit}
-                                className="rounded-md bg-gray-200 px-3 py-1.5 text-xs font-medium text-gray-800"
+                                className="btn-secondary text-xs px-3 py-1.5"
                               >
                                 Cancel
                               </button>

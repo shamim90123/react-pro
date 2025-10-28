@@ -139,10 +139,7 @@ export default function LeadList() {
       {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-gray-800">University List</h1>
-        <button
-          onClick={toggleLeadForm}
-          className="rounded-lg bg-[#282560] hover:bg-[#1f1c4d] px-4 py-2 text-sm text-white transition-colors"
-        >
+        <button onClick={toggleLeadForm} className="btn-add">
           + Add University
         </button>
       </div>

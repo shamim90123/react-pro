@@ -107,7 +107,7 @@ export default function UserList() {
 
           <button
             onClick={() => navigate("/users/new")}
-            className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg active:scale-[.99]"
+            className="btn-add"
           >
             + Add User
           </button>

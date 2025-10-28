@@ -67,7 +67,7 @@ export default function ProductList() {
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <button
             onClick={() => navigate("/products/new")}
-            className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg"
+            className="btn-add"
           >
             + Add Product
           </button>

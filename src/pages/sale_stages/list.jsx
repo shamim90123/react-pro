@@ -68,7 +68,7 @@ export default function LeadStageList() {
        
           <button
             onClick={() => navigate("/sale-stages/new")}
-            className="px-4 py-2 text-sm text-white bg-[#282560] hover:bg-[#1f1c4d] rounded-lg"
+            className="btn-add"
           >
             + Add sale Stage
           </button>

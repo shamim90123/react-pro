@@ -1,9 +1,8 @@
-/* src/styles/globals.css */
 @import "./variables.css";
 @import "./theme.css";
-/* then Tailwind */
 @import "tailwindcss";
 
+/* Global structure */
 html, body, #root { height: 100%; }
 
 body {
@@ -12,5 +11,40 @@ body {
   color: var(--color-text);
 }
 
-a { color: var(--color-primary); text-decoration: none; }
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
 a:hover { text-decoration: none; }
+
+/* ------------------------------------------------
+   Global Button Styles
+---------------------------------------------------*/
+@layer base {
+  /* Default Button */
+  button {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium 
+           transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2;
+  }
+
+  /* Primary (Submit / Save) */
+  button[type="submit"],
+  .btn-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500;
+  }
+
+  /* Secondary (Cancel) */
+  .btn-secondary {
+    @apply bg-gray-100 text-gray-800 hover:bg-gray-200 focus:ring-gray-300;
+  }
+
+  /* Add / Create Button */
+  .btn-add {
+    @apply bg-gray-800 text-white hover:bg-gray-700;
+  }
+
+  /* Disabled State */
+  button:disabled {
+    @apply opacity-60 cursor-not-allowed;
+  }
+}
