@@ -78,7 +78,7 @@ export default function LeadView() {
       <LeadHeader lead={lead} onAddContact={openAddContact} />
 
       {/* ---------- Contacts ---------- */}
-      <section className="mb-8">
+      <section className="mb-8 border-gray-200 bg-white p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">
             University Contacts
@@ -89,7 +89,7 @@ export default function LeadView() {
 
           <button
             onClick={openAddContact}
-            className="rounded-lg bg-[#282560] px-4 py-2 text-sm text-white transition-colors hover:bg-blue-700"
+            className="rounded-lg bg-[#282560] px-4 py-2 text-sm text-white transition-colors hover:bg-[#282560]"
           >
             + Add Contact
           </button>

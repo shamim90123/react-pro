@@ -227,7 +227,7 @@ export default function LeadRow({
 
       {/* Expander Row */}
       {expanded && (
-        <tr className="bg-indigo-50/40">
+        <tr className=" bg-slate-400">
           <td colSpan={7} className="px-6 py-4">
             <InlineLeadProductMatrix
               lead={lead}

@@ -223,7 +223,7 @@ export default function ContactForm({
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="rounded-lg bg-[#282560] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#282560] disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? "Saving…" : form.id ? "Update Contact" : "Save Contact"}
         </button>

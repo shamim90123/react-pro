@@ -9,7 +9,7 @@ export default function LeadForm({
   countries,
 }) {
   return (
-    <form onSubmit={onSubmit} className="flex w-full flex-wrap items-center gap-4">
+    <form onSubmit={onSubmit} className="flex w-full flex-wrap items-center gap-4 bg-white p-6 shadow-md">
       <div className="min-w-[200px] flex-1">
         <input
           value={form.lead_name}
