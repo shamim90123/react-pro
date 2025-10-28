@@ -216,14 +216,14 @@ export default function ContactForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
+          className="btn-secondary"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={submitting}
-          className="rounded-lg bg-[#282560] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#282560] disabled:cursor-not-allowed disabled:opacity-60"
+          className="disabled:cursor-not-allowed disabled:opacity-60"
         >
           {submitting ? "Saving…" : form.id ? "Update Contact" : "Save Contact"}
         </button>

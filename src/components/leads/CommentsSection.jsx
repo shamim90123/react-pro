@@ -129,7 +129,7 @@ export default function CommentsSection({
             <button
               type="submit"
               disabled={!canSubmit}
-              className="rounded-md bg-indigo-600 px-3.5 py-2 text-xs font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+              className="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
             >
               {submitting ? (editingId ? "Updating…" : "Adding…") : (editingId ? "Update Comment" : "Add Comment")}
             </button>

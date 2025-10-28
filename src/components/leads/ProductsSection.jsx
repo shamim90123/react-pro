@@ -216,7 +216,7 @@ export default function ProductsSection({
           <button
             type="button"
             onClick={onSave}
-            className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
             disabled={!canSave || loading}
           >
             Save Selected Products ({selectedCount})

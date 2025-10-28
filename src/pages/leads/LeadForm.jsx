@@ -42,17 +42,17 @@ export default function LeadForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-100"
+          className="btn-secondary"
         >
           Cancel
         </button>
         <button
           type="submit"
           disabled={submitting}
-          className={`rounded-lg px-6 py-2.5 text-sm font-medium text-white shadow-sm transition-colors duration-200 ${
+          className={`duration-200 ${
             submitting
-              ? "cursor-not-allowed bg-blue-300"
-              : "bg-[#282560] hover:bg-[#1f1c4d] focus:ring-4 focus:ring-blue-200"
+              ? "cursor-not-allowed"
+              : ""
           }`}
         >
           {submitting ? "Saving…" : form.lead_id ? "Update" : "Save"}

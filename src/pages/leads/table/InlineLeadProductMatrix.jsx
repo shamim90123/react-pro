@@ -164,7 +164,7 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 disabled:opacity-60"
+            className="btn-secondary disabled:opacity-60"
             disabled={savingAll}
           >
             Cancel
@@ -172,7 +172,7 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
           <button
             type="button"
             onClick={handleSaveAll}
-            className="rounded-md bg-indigo-600 px-3 py-1.5 text-sm text-white hover:bg-indigo-700 disabled:opacity-60"
+            className="btn-primary disabled:opacity-60"
             disabled={savingAll}
           >
             {savingAll ? "Saving…" : "Save"}

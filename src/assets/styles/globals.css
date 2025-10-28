@@ -23,7 +23,7 @@ a:hover { text-decoration: none; }
 @layer base {
   /* Default Button */
   button {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-md text-sm font-medium 
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium 
            transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-2;
   }
 
@@ -46,5 +46,17 @@ a:hover { text-decoration: none; }
   /* Disabled State */
   button:disabled {
     @apply opacity-60 cursor-not-allowed;
+  }
+
+  .btn-reset {
+    @apply bg-white border border-gray-300 text-gray-700 
+           hover:bg-gray-100 hover:border-gray-400 
+           focus:ring-gray-300;
+  }
+
+  /* Filter Button */
+  .btn-filter {
+    @apply bg-emerald-600 text-white hover:bg-emerald-700 
+           focus:ring-emerald-500;
   }
 }

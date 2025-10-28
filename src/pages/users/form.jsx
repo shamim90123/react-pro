@@ -155,14 +155,14 @@ export default function UserFormPage() {
           <button
             type="button"
             onClick={() => navigate("/users")}
-            className="px-4 py-2 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="btn-secondary"
           >
             Cancel
           </button>
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 rounded-xl text-white bg-[#282560] hover:bg-[#1f1c4d] disabled:opacity-60"
+            className="btn-primary disabled:opacity-60"
           >
             {saving ? "Saving…" : isEdit ? "Update User" : "Create User"}
           </button>

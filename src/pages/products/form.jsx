@@ -86,9 +86,9 @@ const ProductFormPage = () => {
         <div className="text-right">
           <button
             type="submit"
-            className="px-4 py-2 text-white bg-blue-500 rounded-lg"
+            className=""
           >
-            {id ? "Save Changes" : "Add Product"}
+            {id ? "Save Changes" : "Save"}
           </button>
         </div>
       </form>
