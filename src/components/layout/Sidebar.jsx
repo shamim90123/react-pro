@@ -7,7 +7,7 @@ import { useAbility } from "@/hooks/useAbility";
 // You can use a single string or array of strings.
 // Use `{ any: true }` if you want "OR" logic.
 const NAV_ITEMS = [
-  { to: "/dashboard", label: "Dashboard", icon: "🏠", need: "stats.view" },
+  { to: "/dashboard", label: "Dashboard", icon: "🏠", need: "dashboard.view" },
   { to: "/leads", label: "Universities", icon: "🎓", need: "leads.view" },
   { to: "/lead-importer", label: "Universities Importer", icon: "🎓", need: ["leads.bulk-import", "leads.bulk-comment-import"], any: true },
   { to: "/comment-importer", label: "Comments Importer", icon: "💬", need: "leads.bulk-comment-import" },
