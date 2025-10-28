@@ -259,22 +259,20 @@ export default function Header({ onToggleSidebar }) {
                     Change Password
                   </Link>
 
-                  <div className="my-1 mx-3 h-px bg-gray-100" />
-
-                  <button
-                    type="button"
+                  <Link
                     role="menuitem"
                     onClick={() => {
                       setMenuOpen(false);
                       handleLogout();
                     }}
-                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm font-medium text-red-600 hover:bg-red-50 focus:bg-red-50 focus:outline-none"
-                    tabIndex={-1}
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                    tabIndex={1}
                   >
                     <span aria-hidden>🚪</span>
                     Logout
-                  </button>
+                  </Link>
                 </div>
+
               </div>
             </div>
           </div>

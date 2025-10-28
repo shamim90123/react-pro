@@ -26,6 +26,9 @@ import ProductFormPage from "@/pages/products/form.jsx";
 import SaleStageList from "@/pages/sale_stages/list.jsx";
 import SaleStageFormPage from "@/pages/sale_stages/form.jsx";
 
+import RoleEdit from "@/pages/roles/RoleEdit";
+import RoleList from "@/pages/roles/RoleList";
+import RoleCreate from "@/pages/roles/RoleCreate";
 
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
@@ -55,6 +58,9 @@ export const appRoutes = [
         children: [
           { path: "/dashboard", element: <Dashboard /> },
           { path: "/change-password", element: <ChangePassword /> },
+          { path: "/roles", element: <RoleList /> },
+          { path: "/role-create", element: <RoleCreate /> },
+          { path: "/role-edit/:id", element: <RoleEdit /> },
 
           // Leads
           { path: "/leads", element: <LeadList /> },

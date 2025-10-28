@@ -2,15 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { UsersApi } from "@/services/users";
+import { RolesApi } from "@/services/roles";              // ✅ NEW
 import { SweetAlert } from "@/components/ui/SweetAlert";
-
-const ROLES = [
-  { label: "Admin", value: "admin" },
-  { label: "User", value: "user" },
-  { label: "Manager", value: "manager" },
-  { label: "Staff", value: "staff" },
-  { label: "Viewer", value: "viewer" },
-];
 
 export default function UserFormPage() {
   const navigate = useNavigate();
@@ -21,21 +14,50 @@ export default function UserFormPage() {
     name: "",
     email: "",
     password: "",
-    role: "admin",
+    role: "",                                          // 🔄 start empty; set after roles load
   });
+
+  const [roles, setRoles] = useState([]);              // ✅ dynamic list
+  const [rolesLoading, setRolesLoading] = useState(true);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
 
+  // Load roles (names)
+  useEffect(() => {
+    (async () => {
+      try {
+        setRolesLoading(true);
+        const names = await RolesApi.listNames();      // e.g., ["admin","user","manager"]
+        setRoles(names);
+        // Preselect a sensible default if creating
+        if (!isEdit) {
+          setForm(s => ({ ...s, role: names?.[0] || "" }));
+        }
+      } catch (e) {
+        SweetAlert.error(e?.data?.message || e?.message || "Failed to load roles");
+      } finally {
+        setRolesLoading(false);
+      }
+    })();
+  }, [isEdit]);
+
+  // Load user for edit
   useEffect(() => {
     if (!isEdit) return;
     (async () => {
       try {
+        setLoading(true);
         const data = await UsersApi.get(id);
+        // data.roles could be ["admin"] or array of role objects; normalize to first name
+        const firstRole =
+          Array.isArray(data?.roles) && data.roles.length
+            ? (typeof data.roles[0] === "string" ? data.roles[0] : data.roles[0]?.name)
+            : "";
         setForm({
           name: data?.name ?? "",
           email: data?.email ?? "",
-          password: "", // keep empty for edit
-          role: data?.roles[0] ?? "admin",
+          password: "",
+          role: firstRole || "",
         });
       } catch (e) {
         SweetAlert.error(e?.message || "Failed to load user");
@@ -53,20 +75,22 @@ export default function UserFormPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // simple client validation
     if (!form.name?.trim()) return SweetAlert.error("Name is required");
     if (!form.email?.trim()) return SweetAlert.error("Email is required");
     if (!isEdit && !form.password) return SweetAlert.error("Password is required");
+    if (!form.role) return SweetAlert.error("Select a role");
 
     setSaving(true);
     try {
       if (isEdit) {
-        const payload = { name: form.name, email: form.email, role: form.role };
-        if (form.password) payload.password = form.password; // only if changed
+        const payload = { name: form.name, email: form.email, roles: [form.role] }; // ✅ send array
+        if (form.password) payload.password = form.password;
         await UsersApi.update(id, payload);
         SweetAlert.success("User updated");
       } else {
-        await UsersApi.create(form);
+        const payload = { ...form, roles: [form.role] }; // ✅ send array
+        delete payload.role;
+        await UsersApi.create(payload);
         SweetAlert.success("User created");
       }
       navigate("/users", { replace: true });
@@ -77,11 +101,7 @@ export default function UserFormPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="p-6">Loading user…</div>
-    );
-  }
+  if (loading) return <div className="p-6">Loading user…</div>;
 
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-6">
@@ -141,30 +161,25 @@ export default function UserFormPage() {
               value={form.role}
               onChange={handleChange}
               className="w-full px-3 py-2 border rounded-xl bg-white focus:ring-1 focus:ring-[#282560] focus:border-[#282560]"
+              disabled={rolesLoading}
             >
-              {ROLES.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
-                </option>
-              ))}
+              {rolesLoading && <option>Loading…</option>}
+              {!rolesLoading && roles.length === 0 && <option value="">No roles found</option>}
+              {!rolesLoading &&
+                roles.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
             </select>
           </div>
         </div>
 
-        {/* actions bottom-right */}
         <div className="pt-4 flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={() => navigate("/users")}
-            className="btn-secondary"
-          >
+          <button type="button" onClick={() => navigate("/users")} className="btn-secondary">
             Cancel
           </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="btn-primary disabled:opacity-60"
-          >
+          <button type="submit" disabled={saving} className="btn-primary disabled:opacity-60">
             {saving ? "Saving…" : isEdit ? "Update User" : "Create User"}
           </button>
         </div>
