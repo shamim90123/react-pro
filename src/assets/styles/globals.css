@@ -59,4 +59,9 @@ a:hover { text-decoration: none; }
     @apply bg-emerald-600 text-white hover:bg-emerald-700 
            focus:ring-emerald-500;
   }
+
+  button:focus {
+    outline: none !important;
+    box-shadow: none !important;
+  }
 }
