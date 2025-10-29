@@ -64,4 +64,13 @@ a:hover { text-decoration: none; }
     outline: none !important;
     box-shadow: none !important;
   }
+
+  .btn-icon {
+    @apply inline-flex items-center justify-center p-0 h-5 w-5 rounded
+           bg-transparent border-0 shadow-none
+           focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0;
+  }
+  .btn-icon > svg {
+    @apply pointer-events-none;
+  }
 }

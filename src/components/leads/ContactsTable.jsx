@@ -8,9 +8,9 @@ export default function ContactsTable({ contacts = [], onEdit, onMakePrimary, on
           <tr className="bg-gray-100 text-gray-700">
             <th className="w-12 px-4 py-3 text-left font-semibold">#</th>
             <th className="px-4 py-3 text-left font-semibold">Name</th>
+            <th className="px-4 py-3 text-left font-semibold">Job Title</th>
             <th className="px-4 py-3 text-left font-semibold">Email</th>
             <th className="px-4 py-3 text-left font-semibold">Phone</th>
-            <th className="px-4 py-3 text-left font-semibold">Job Title</th>
             <th className="px-4 py-3 text-left font-semibold">Actions</th>
           </tr>
         </thead>
@@ -29,15 +29,16 @@ export default function ContactsTable({ contacts = [], onEdit, onMakePrimary, on
                     <span>{c.name}</span>
                     {Number(c.is_primary) === 1 && (
                       <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700 border border-green-200">
-                        Primary
+                        Primary Contact
                       </span>
                     )}
                   </div>
                 </td>
 
+                <td className="px-4 py-3">{c.job_title || "—"}</td>
+
                 <td className="px-4 py-3">{c.email || "—"}</td>
                 <td className="px-4 py-3">{c.phone || "—"}</td>
-                <td className="px-4 py-3">{c.job_title || "—"}</td>
 
                 <td className="px-4 py-3 text-right">
                   <ContactActions

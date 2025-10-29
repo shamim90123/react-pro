@@ -52,7 +52,7 @@ export default function AccountManagerCell({
             </p>
 
             {/* tiny icon placed right next to name */}
-            <button
+            {/* <button
               type="button"
               onClick={() => setIsEditing(true)}
               disabled={isBusy}
@@ -73,7 +73,25 @@ export default function AccountManagerCell({
                   <path strokeLinecap="round" strokeWidth={1.8} d="M12 5v14M5 12h14" />
                 </svg>
               )}
-            </button>
+            </button> */}
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                disabled={isBusy}
+                className={`btn-icon hover:bg-gray-100 disabled:opacity-60 ${isBusy ? "cursor-not-allowed" : ""}`}
+                title={currentUserName ? "Edit" : "Add"}
+                aria-label={currentUserName ? "Edit account manager" : "Add account manager"}
+              >
+                {currentUserName ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M16.862 3.487a2.121 2.121 0 1 1 3 3L8.5 17.85l-4 1 1-4 11.362-11.363z" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeWidth={1.8} d="M12 5v14M5 12h14" />
+                  </svg>
+                )}
+              </button>
           </div>
         ) : (
           <div className="flex items-center gap-2">
@@ -94,10 +112,21 @@ export default function AccountManagerCell({
               ))}
             </select>
 
-            <button
+            {/* <button
               type="button"
               onClick={() => setIsEditing(false)}
               className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-300 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              aria-label="Cancel"
+              title="Cancel"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeWidth={1.8} d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button> */}
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="btn-icon h-8 w-8 rounded-md border border-gray-300 bg-white hover:bg-gray-50"
               aria-label="Cancel"
               title="Cancel"
             >

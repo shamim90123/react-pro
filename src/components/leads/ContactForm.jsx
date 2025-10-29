@@ -128,7 +128,7 @@ export default function ContactForm({
                 : "bg-gray-100 text-gray-600 ring-1 ring-gray-200",
             ].join(" ")}
           >
-            {form.is_primary ? "Primary" : "Set as Primary"}
+            {form.is_primary ? "Primary Contact" : "Select Primary Contact"}
           </span>
         </label>
       </div>
@@ -163,6 +163,19 @@ export default function ContactForm({
           />
         </div>
 
+        {/* Job Title */}
+        <div className="sm:col-span-1">
+          <Field
+            label="Job Title"
+            name="job_title"
+            value={form.job_title}
+            onChange={(v) => onFieldChange("job_title", v)}
+            placeholder="e.g., Admissions Manager"
+            maxLength={120}
+            autoComplete="organization-title"
+          />
+        </div>
+
         {/* Email */}
         <div className="sm:col-span-1">
           <Field
@@ -192,18 +205,6 @@ export default function ContactForm({
           />
         </div>
 
-        {/* Job Title */}
-        <div className="sm:col-span-1">
-          <Field
-            label="Job Title"
-            name="job_title"
-            value={form.job_title}
-            onChange={(v) => onFieldChange("job_title", v)}
-            placeholder="e.g., Admissions Manager"
-            maxLength={120}
-            autoComplete="organization-title"
-          />
-        </div>
 
         {/* (Designation/Department removed as requested) */}
 
