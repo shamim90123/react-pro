@@ -189,10 +189,16 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
         const account_manager_id =
           row.account_manager_id || (leadAccountManagerId ? String(leadAccountManagerId) : "");
 
+        const contactId = row.contact_id;
+        const notes = row.notes;
+
+
         return {
           product_id: Number(pid),
           sales_stage_id: sales_stage_id ? Number(sales_stage_id) : null,
           account_manager_id: account_manager_id ? Number(account_manager_id) : null,
+          contact_id: contactId ? Number(contactId) : null,
+          notes: notes || null,
         };
       });
 

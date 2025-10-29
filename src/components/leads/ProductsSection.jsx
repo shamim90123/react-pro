@@ -14,6 +14,7 @@ export default function ProductsSection({
   users = [],
   edits = {},
   onEditField,
+  contacts = [],
 }) {
   const [q, setQ] = useState("");
 
@@ -101,9 +102,11 @@ export default function ProductsSection({
           <thead className="bg-gray-50 text-gray-700">
             <tr>
               <th className="w-10 px-3 py-2 text-left"></th>
-              <th className="px-3 py-2 text-left font-semibold">Product</th>
-              <th className="px-3 py-2 text-left font-semibold">Sales Stage</th>
               <th className="px-3 py-2 text-left font-semibold">Account Manager</th>
+              <th className="px-3 py-2 text-left font-semibold">Product</th>
+              <th className="px-3 py-2 text-left font-semibold">Stage</th>
+              <th className="px-3 py-2 text-left font-semibold">Contact</th>
+              <th className="px-3 py-2 text-left font-semibold">Notes</th>
             </tr>
           </thead>
 
@@ -145,6 +148,27 @@ export default function ProductsSection({
                         />
                       </td>
 
+                      {/* Account Manager */}
+                      <td className="px-3 py-2 align-top">
+                        <select
+                          className="w-56 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60"
+                          value={amVal}
+                          onChange={(e) =>
+                            onEditField(pid, {
+                              account_manager_id: e.target.value,
+                            })
+                          }
+                          disabled={!checked}
+                        >
+                          <option value="">Select manager</option>
+                          {userOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+
                       {/* Product info */}
                       <td className="px-3 py-2 align-top">
                         <div className="max-w-[380px]">
@@ -178,26 +202,41 @@ export default function ProductsSection({
                         </select>
                       </td>
 
-                      {/* Account Manager */}
+
+                      {/* contacts dropdown per row could go here */}
                       <td className="px-3 py-2 align-top">
                         <select
-                          className="w-56 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60"
-                          value={amVal}
+                          className="w-48 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60"
+                          // value={contactVal} // implement if needed
                           onChange={(e) =>
-                            onEditField(pid, {
-                              account_manager_id: e.target.value,
-                            })
+                            onEditField(pid, { contact_id: e.target.value })
                           }
                           disabled={!checked}
                         >
-                          <option value="">Select manager</option>
-                          {userOptions.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
+                          <option value="">Select contact</option>
+                          {contacts.map((contact) => ( 
+                            <option key={contact.id} value={contact.id}>
+                              {contact.name}
                             </option>
                           ))}
                         </select>
                       </td>
+
+                      {/* Notes */}
+                      <td className="px-3 py-2 align-top">
+                        <textarea
+                          className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60"
+                          value={row.notes || ""}
+                          onChange={(e) =>
+                            onEditField(pid, { notes: e.target.value })
+                          }
+                          disabled={!checked}
+                          rows={2}
+                        />
+                      </td>
+
+          
+                      
                     </tr>
                   );
                 })

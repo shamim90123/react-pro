@@ -134,6 +134,7 @@ export default function LeadView() {
         edits={edits}
         onEditField={onEditField}
         leadAccountManagerId={lead?.account_manager_id}
+        contacts={contacts}
       />
 
       {/* ---------- Comments ---------- */}

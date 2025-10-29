@@ -67,10 +67,12 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
     setSavingAll(true);
     try {
          const items = rows.map((r) => ({
-     product_id: r.id,
-     sales_stage_id: r.sales_stage_id || null,
-     account_manager_id: r.account_manager_id || null,
-   }));
+          product_id: r.id,
+          sales_stage_id: r.sales_stage_id || null,
+          account_manager_id: r.account_manager_id || null,
+          notes: r.notes || null,
+          contact_id: r.contact_id || null,
+        }));
 
    if (onSaveAll) {
     await onSaveAll({ leadId, items }); // optional external handler
@@ -93,10 +95,10 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 text-xs uppercase text-gray-600">
             <tr>
-              <th className="px-3 py-2 text-left font-semibold">#</th>
+              {/* <th className="px-3 py-2 text-left font-semibold">#</th> */}
+              <th className="px-3 py-2 text-left font-semibold">Account Manager</th>
               <th className="px-3 py-2 text-left font-semibold">Product</th>
               <th className="px-3 py-2 text-left font-semibold">Sales Stage</th>
-              <th className="px-3 py-2 text-left font-semibold">Account Manager</th>
             </tr>
           </thead>
 
@@ -113,8 +115,25 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
             ) : rows.length ? (
               rows.map((r, idx) => (
                 <tr key={r.id ?? idx} className="bg-white">
-                  <td className="px-3 py-2 text-gray-600">{idx + 1}</td>
+                  {/* <td className="px-3 py-2 text-gray-600">{idx + 1}</td> */}
                   <td className="px-3 py-2 text-gray-800">{r.name || r.title || `#${r.id}`}</td>
+
+
+                   {/* Account Manager */}
+                  <td className="px-3 py-2">
+                    <select
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                      value={r.account_manager_id ?? ""}
+                      onChange={(e) => updateRow(r.id, { account_manager_id: e.target.value })}
+                    >
+                      <option value="">Select manager</option>
+                      {userOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
 
                   {/* Sales Stage */}
                   <td className="px-3 py-2">
@@ -132,21 +151,7 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
                     </select>
                   </td>
 
-                  {/* Account Manager */}
-                  <td className="px-3 py-2">
-                    <select
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                      value={r.account_manager_id ?? ""}
-                      onChange={(e) => updateRow(r.id, { account_manager_id: e.target.value })}
-                    >
-                      <option value="">Select manager</option>
-                      {userOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
+                 
                 </tr>
               ))
             ) : (
