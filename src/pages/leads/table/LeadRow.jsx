@@ -44,47 +44,68 @@ export default function LeadRow({
 
   const calcAndSetPos = useCallback(() => {
     const btn = stBtnRef.current;
+    const menu = stMenuRef.current;
     if (!btn) return;
+
     const r = btn.getBoundingClientRect();
     const menuWidth = 160; // w-40
     const gap = 8;
 
-    // keep inside viewport
-    const left = Math.min(
-      Math.max(8, r.left + window.scrollX),
-      window.scrollX + window.innerWidth - menuWidth - 8
+    // Start with below the button (viewport coords; no scrollX/Y here)
+    let left = r.left;
+    let top = r.bottom + gap;
+
+    // Clamp horizontally inside viewport
+    left = Math.min(
+      Math.max(8, left),
+      window.innerWidth - menuWidth - 8
     );
-    const top = r.bottom + window.scrollY + gap;
+
+    // If we know menu height, flip above if needed
+    const menuH = menu ? menu.offsetHeight : 0;
+    if (menuH && top + menuH > window.innerHeight - 8) {
+      const aboveTop = r.top - gap - menuH;
+      if (aboveTop >= 8) {
+        top = aboveTop;
+      }
+    }
 
     setPos({ top, left, width: menuWidth });
   }, []);
 
-  useEffect(() => {
-    if (!stOpen) return;
-    calcAndSetPos();
 
-    const onDown = (e) => {
-      const t = e.target;
-      if (stBtnRef.current?.contains(t)) return;
-      if (stMenuRef.current?.contains(t)) return;
-      setStOpen(false);
-    };
-    const onKey = (e) => e.key === "Escape" && setStOpen(false);
-    const onScroll = () => calcAndSetPos();
-    const onResize = () => calcAndSetPos();
+ useEffect(() => {
+  if (!stOpen) return;
 
-    window.addEventListener("pointerdown", onDown, true);
-    window.addEventListener("keydown", onKey);
-    window.addEventListener("scroll", onScroll, true);
-    window.addEventListener("resize", onResize);
+  // First pass: position using default guess
+  calcAndSetPos();
 
-    return () => {
-      window.removeEventListener("pointerdown", onDown, true);
-      window.removeEventListener("keydown", onKey);
-      window.removeEventListener("scroll", onScroll, true);
-      window.removeEventListener("resize", onResize);
-    };
-  }, [stOpen, calcAndSetPos]);
+  // Second pass: measure actual menu height and adjust (next frame)
+  const raf = requestAnimationFrame(() => calcAndSetPos());
+
+  const onDown = (e) => {
+    const t = e.target;
+    if (stBtnRef.current?.contains(t)) return;
+    if (stMenuRef.current?.contains(t)) return;
+    setStOpen(false);
+  };
+  const onKey = (e) => e.key === "Escape" && setStOpen(false);
+  const onScroll = () => calcAndSetPos();
+  const onResize = () => calcAndSetPos();
+
+  window.addEventListener("pointerdown", onDown, true);
+  window.addEventListener("keydown", onKey);
+  window.addEventListener("scroll", onScroll, true);
+  window.addEventListener("resize", onResize);
+
+  return () => {
+    cancelAnimationFrame(raf);
+    window.removeEventListener("pointerdown", onDown, true);
+    window.removeEventListener("keydown", onKey);
+    window.removeEventListener("scroll", onScroll, true);
+    window.removeEventListener("resize", onResize);
+  };
+}, [stOpen, calcAndSetPos]);
 
   const handlePick = async (val) => {
     if (val === lead.status) return setStOpen(false);
@@ -227,7 +248,7 @@ export default function LeadRow({
 
       {/* Expander Row */}
       {expanded && (
-        <tr className=" bg-slate-400">
+        <tr className=" bg-slate-300">
           <td colSpan={7} className="px-6 py-4">
             <InlineLeadProductMatrix
               lead={lead}

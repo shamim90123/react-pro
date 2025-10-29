@@ -43,8 +43,13 @@ export default function LeadDetailsModal({ open, onClose, lead, initialTab }) {
       ) : items.length ? (
         <div className="space-y-3">
           {tab === "contacts"
-            ? items.map((c) => (
-                <div key={c.id} className="rounded-lg border p-3">
+            ? items.map((c, idx) => (
+                <div
+                  key={c.id}
+                  className={`rounded-lg border p-3 ${
+                    idx % 2 === 0 ? "bg-blue-50" : "bg-indigo-50"
+                  }`}
+                >
                   <div className="flex items-center justify-between">
                     <div className="font-medium text-gray-900">
                       {c.name || "—"}{" "}
@@ -63,23 +68,29 @@ export default function LeadDetailsModal({ open, onClose, lead, initialTab }) {
                   </div>
                 </div>
               ))
-            : items.map((n) => (
-                <div key={n.id} className="rounded-lg border p-3">
+            : items.map((n, idx) => (
+                 <div
+                    key={n.id}
+                    className={`rounded-lg border p-3 ${
+                      idx % 2 === 0 ? "bg-[#f0f2f7]" : "bg-[#e4f1ff]"
+                    }`}
+                  >
                   <div className="flex items-center justify-between">
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium">
                       {n.user?.name || "—"}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs opacity-80">
                       {n.created_at
                         ? String(n.created_at).slice(0, 16).replace("T", " ")
                         : "—"}
                     </div>
                   </div>
-                  <div className="mt-1 whitespace-pre-wrap text-sm text-gray-800">
+                  <div className="mt-1 whitespace-pre-wrap text-sm">
                     {n.comment || n.body || "—"}
                   </div>
                 </div>
               ))}
+
 
           {meta?.last_page > 1 && (
             <div className="mt-2 flex items-center justify-between">
