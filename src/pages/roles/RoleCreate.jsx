@@ -20,9 +20,9 @@ export default function RoleCreate() {
   return (
     <div className="min-h-[calc(100vh-56px)] bg-gray-50">
       <div className="mx-auto max-w-4xl px-4 py-8">
-        <div className="mb-6 flex items-center justify-between">
+        {/* <div className="mb-6 flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Create Role</h1>
-        </div>
+        </div> */}
         <RoleForm mode="create" onSubmit={handleSubmit} />
       </div>
     </div>
