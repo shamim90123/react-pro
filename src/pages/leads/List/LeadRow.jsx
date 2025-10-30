@@ -114,6 +114,9 @@ export default function LeadRow({
     setStOpen(false);
   };
 
+  const flagCode = lead?.destination?.iso_3166_2?.toLowerCase();
+  const flagSrc = flagCode ? `/flags/1x1/${flagCode}.svg` : null;
+
   return (
     <>
       <tr className="border-b border-gray-100 bg-white hover:bg-gray-50">
@@ -129,33 +132,50 @@ export default function LeadRow({
           handleAssignAccountManager={onAssignAM}
         />
 
-        {/* University */}
-        <td className="px-6 py-3 font-medium text-gray-900">
-          <button
-            type="button"
-            onClick={toggle}
-            className="group flex w-full items-center gap-3 text-left"
-            title="Quick edit (product & sales stage)"
-          >
-            <img
-              src={`/flags/1x1/${lead?.destination?.iso_3166_2?.toLowerCase() || "unknown"}.svg`}
-              alt={lead?.destination?.name || "Flag"}
-              title={lead?.destination?.name || ""}
-              className="h-5 w-5 rounded-full object-cover"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = "/img/no-img.png";
-              }}
-            />
-            <div className="flex flex-col leading-tight">
-              <span className="font-medium text-gray-900 group-hover:underline">
-                {lead?.lead_name}
-              </span>
-              <span className="text-xs text-gray-500">{lead?.city || "—"}</span>
-            </div>
-            <span className="ml-auto text-xs text-gray-400">{expanded ? "Hide" : ""}</span>
-          </button>
-        </td>
+       {/* University */}
+      <td className="px-6 py-3 font-medium text-gray-900">
+        <button
+          type="button"
+          onClick={toggle}
+          className="group flex w-full items-center gap-3 text-left"
+          title="Quick edit (product & sales stage)"
+        >
+          {/* Always reserve a 20x20 slot so the column never shifts */}
+          <span className="h-5 w-5 shrink-0 rounded-full overflow-hidden ring-1 ring-gray-200 bg-gray-100">
+            {flagSrc ? (
+              <img
+                src={flagSrc}
+                alt={lead?.destination?.name || "Flag"}
+                title={lead?.destination?.name || ""}
+                className="h-full w-full object-cover"
+                onError={(e) => {
+                  // keep the same size; swap to a tiny inline placeholder
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src =
+                    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20'><rect width='20' height='20' fill='%23f3f4f6'/></svg>";
+                }}
+              />
+            ) : (
+              // solid placeholder when destination is null
+              <svg viewBox="0 0 20 20" className="h-full w-full">
+                <rect width="20" height="20" fill="#f3f4f6" />
+              </svg>
+            )}
+          </span>
+
+          <div className="flex flex-col leading-tight">
+            <span className="font-medium text-gray-900 group-hover:underline">
+              {lead?.lead_name}
+            </span>
+            <span className="text-xs text-gray-500">{lead?.city || "—"}</span>
+          </div>
+
+          <span className="ml-auto text-xs text-gray-400">
+            {expanded ? "Hide" : ""}
+          </span>
+        </button>
+      </td>
+
 
         {/* Contacts */}
 
