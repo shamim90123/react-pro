@@ -104,8 +104,8 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
           <thead className="bg-gray-50 text-xs uppercase text-gray-600">
             <tr>
               {/* <th className="px-3 py-2 text-left font-semibold">#</th> */}
-              <th className="px-3 py-2 text-left font-semibold">Product</th>
               <th className="px-3 py-2 text-left font-semibold">Account Manager</th>
+              <th className="px-3 py-2 text-left font-semibold">Product</th>
               <th className="px-3 py-2 text-left font-semibold">Sales Stage</th>
               <th className="px-3 py-2 text-left font-semibold">Contact</th>
               <th className="px-3 py-2 text-left font-semibold">Note</th>
@@ -126,9 +126,6 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
               rows.map((r, idx) => (
                 <tr key={r.id ?? idx} className="bg-white">
                   {/* <td className="px-3 py-2 text-gray-600">{idx + 1}</td> */}
-                  <td className="px-3 py-2 text-gray-800">{r.name || r.title || `#${r.id}`}</td>
-
-
                    {/* Account Manager */}
                   <td className="px-3 py-2">
                     <select
@@ -144,6 +141,8 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
                       ))}
                     </select>
                   </td>
+
+                  <td className="px-3 py-2 text-gray-800">{r.name || r.title || `#${r.id}`}</td>
 
                   {/* Sales Stage */}
                   <td className="px-3 py-2">
