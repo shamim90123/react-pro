@@ -104,8 +104,8 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
           <thead className="bg-gray-50 text-xs uppercase text-gray-600">
             <tr>
               {/* <th className="px-3 py-2 text-left font-semibold">#</th> */}
-              <th className="px-3 py-2 text-left font-semibold">Account Manager</th>
               <th className="px-3 py-2 text-left font-semibold">Product</th>
+              <th className="px-3 py-2 text-left font-semibold">Account Manager</th>
               <th className="px-3 py-2 text-left font-semibold">Sales Stage</th>
               <th className="px-3 py-2 text-left font-semibold">Contact</th>
               <th className="px-3 py-2 text-left font-semibold">Note</th>
