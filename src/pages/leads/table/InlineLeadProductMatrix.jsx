@@ -217,11 +217,15 @@ function normalizeProducts(items) {
   return items.map((p) => {
     const stage = p.sales_stage_id ?? p.stage_id ?? p?.pivot?.sales_stage_id ?? null;
     const am = p.account_manager_id ?? p?.pivot?.account_manager_id ?? null;
+    const contact = p.contact_id ?? p?.pivot?.contact_id ?? null;
+    const notes = p.notes ?? p?.pivot?.notes ?? null;
     return {
       id: p.id,
       name: p.name || p.title,
       sales_stage_id: stage ? String(stage) : "",
       account_manager_id: am ? String(am) : "",
+      contact_id: contact ? String(contact) : "",
+      notes: notes || "",
     };
   });
 }
