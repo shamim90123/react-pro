@@ -4,9 +4,9 @@ import { useNavigate } from "react-router-dom";
 import LeadForm from "./LeadForm";
 import LeadContactsModal from "./LeadContactsModal";
 import LeadNotesModal from "./LeadNotesModal";
-import LeadTable from "./table/LeadTable";
+import LeadTable from "./LeadTable";
 import Pagination from "@/components/layout/Pagination";
-import { useLeads } from "./hooks/useLeads";
+import { useLeads } from "../hooks/useLeads";
 import { LeadsApi } from "@/services/leads";
 import LeadSearchPanel from "./LeadSearchPanel";
 

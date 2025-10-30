@@ -215,7 +215,9 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
             type="button"
             onClick={handleSaveAll}
             className="btn-primary disabled:opacity-60"
-            disabled={savingAll}
+            // disabled={savingAll}
+            // rows.length
+            disabled={savingAll || rows.length === 0}
           >
             {savingAll ? "Saving…" : "Save"}
           </button>

@@ -1,8 +1,8 @@
 // src/pages/leads/table/LeadRow.jsx
 import { useState, useCallback, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import AccountManagerCell from "../AccountManagerCell";
-import LeadActions from "../LeadActions";
+import AccountManagerCell from "./AccountManagerCell";
+import LeadActions from "./LeadActions";
 import InlineLeadProductMatrix from "./InlineLeadProductMatrix";
 
 function StatusPill({ value }) {

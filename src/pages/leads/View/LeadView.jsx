@@ -3,15 +3,15 @@ import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 
 import { normId } from "@/utils/id";
-import { useComments } from "@/hooks/useComments";
-import { useLeadContacts } from "@/hooks/useLeadContacts";
-import { useLeadProducts } from "@/hooks/useLeadProducts";
+import { useComments } from "@/pages/leads/hooks/useComments";
+import { useLeadContacts } from "@/pages/leads/hooks/useLeadContacts";
+import { useLeadProducts } from "@/pages/leads/hooks/useLeadProducts";
 
-import LeadHeader from "@/components/leads/LeadHeader";
-import ContactsTable from "@/components/leads/ContactsTable";
-import ContactForm from "@/components/leads/ContactForm";
-import ProductsSection from "@/components/leads/ProductsSection";
-import CommentsSection from "@/components/leads/CommentsSection";
+import LeadHeader from "@/pages/leads/View/LeadHeader";
+import ContactsTable from "@/pages/leads/View/ContactsTable";
+import ContactForm from "@/pages/leads/View/ContactForm";
+import ProductsSection from "@/pages/leads/View/ProductsSection";
+import CommentsSection from "@/pages/leads/View/CommentsSection";
 import UISkeleton from "@/components/ui/UISkeleton";
 
 const COMMENTS_PAGE_SIZE = 10;

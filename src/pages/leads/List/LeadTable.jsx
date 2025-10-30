@@ -1,5 +1,5 @@
 // src/pages/leads/table/LeadTable.jsx
-import RowLoading from "../RowLoading";
+import RowLoading from "./RowLoading";
 import LeadRow from "./LeadRow";
 
 export default function LeadTable({
