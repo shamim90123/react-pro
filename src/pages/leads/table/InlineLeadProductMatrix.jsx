@@ -108,6 +108,7 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
               <th className="px-3 py-2 text-left font-semibold">Product</th>
               <th className="px-3 py-2 text-left font-semibold">Sales Stage</th>
               <th className="px-3 py-2 text-left font-semibold">Contact</th>
+              <th className="px-3 py-2 text-left font-semibold">Note</th>
             </tr>
           </thead>
 
@@ -174,6 +175,18 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
                       ))}
                     </select>
                   </td>
+
+                  {/* notes */}
+                  <td className="px-3 py-2">
+                   <textarea
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                      value={r.notes || ""}
+                      onChange={(e) => updateRow(r.id, { notes: e.target.value })}
+                      rows={2}
+                    />
+
+                  </td>
+
 
                  
                 </tr>
