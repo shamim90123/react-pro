@@ -37,6 +37,7 @@ export default function LeadView() {
     remove: onDeleteContact,
   } = useLeadContacts(leadId);
 
+
   // ---------- Products (with stage + AM bulk workflow) ----------
   const {
     products,
@@ -51,6 +52,7 @@ export default function LeadView() {
     edits,
     onEditField,
   } = useLeadProducts(leadId, lead?.account_manager_id);
+  console.log("edits ---", edits)
 
   // ---------- Comments ----------
   const {
@@ -132,9 +134,9 @@ export default function LeadView() {
         stages={stages}
         users={users}
         edits={edits}
+        contacts={contacts}
         onEditField={onEditField}
         leadAccountManagerId={lead?.account_manager_id}
-        contacts={contacts}
       />
 
       {/* ---------- Comments ---------- */}

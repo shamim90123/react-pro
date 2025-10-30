@@ -20,6 +20,7 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
 
   const [rows, setRows] = useState([]);
   const [stages, setStages] = useState([]);
+  const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingAll, setSavingAll] = useState(false);
 
@@ -27,12 +28,14 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
     const load = async () => {
       setLoading(true);
       try {
-        const [pRes, sRes] = await Promise.all([
+        const [pRes, cRes, sRes] = await Promise.all([
           LeadsApi.getProducts(leadId),
+          LeadsApi.get(leadId),
           SaleStageApi.list(),
         ]);
         setRows(normalizeProducts(pRes?.data || []));
         setStages(sRes || []);
+        setContacts(cRes.contacts || []);
       } catch (err) {
         console.error(err);
         SweetAlert.error("Failed to load products/stages");
@@ -51,6 +54,11 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
   const stageOptions = useMemo(
     () => stages.map((s) => ({ value: String(s.id), label: s.name || s.title || `#${s.id}` })),
     [stages]
+  );
+
+  const contactOptions = useMemo(
+    () => contacts.map((s) => ({ value: String(s.id), label: s.name || s.title || `#${s.id}` })),
+    [contacts]
   );
 
   const updateRow = (productId, patch) => {
@@ -99,6 +107,7 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
               <th className="px-3 py-2 text-left font-semibold">Account Manager</th>
               <th className="px-3 py-2 text-left font-semibold">Product</th>
               <th className="px-3 py-2 text-left font-semibold">Sales Stage</th>
+              <th className="px-3 py-2 text-left font-semibold">Contact</th>
             </tr>
           </thead>
 
@@ -144,6 +153,21 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
                     >
                       <option value="">Select stage</option>
                       {stageOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+
+                  <td className="px-3 py-2">
+                    <select
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                      value={r.contact_id ?? ""}
+                      onChange={(e) => updateRow(r.id, { contact_id: e.target.value })}
+                    >
+                      <option value="">Select Contact</option>
+                      {contactOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>
                           {opt.label}
                         </option>

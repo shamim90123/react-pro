@@ -65,14 +65,20 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
     if (!leadId) return;
     try {
       const res = await LeadsApi.getProducts(leadId);
+      
       const arr = (res?.data || res || []).map((p) => ({
         id: normId(p.id),
         stage: p?.pivot?.sales_stage_id ? String(p.pivot.sales_stage_id) : "",
         am: p?.pivot?.account_manager_id ? String(p.pivot.account_manager_id) : "",
+        contact: p?.pivot?.contact_id ? String(p.pivot.contact_id) : "",
+        notes: p?.pivot?.notes ? String(p.pivot.notes) : "",
       }));
+
+      console.log('arr', arr)
 
       // select current links
       setSelectedProductIds(new Set(arr.map((a) => a.id)));
+
 
       // seed edits: if pivot AM empty, default to lead AM
       setEdits((prev) => {
@@ -82,10 +88,13 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
             sales_stage_id: a.stage || "",
             account_manager_id:
               a.am || (leadAccountManagerId ? String(leadAccountManagerId) : ""),
+            contact_id: a.contact  || "",
+            notes: a.notes  || ""
           };
         }
         return next;
       });
+      
     } catch (e) {
       console.error(e);
       // non-blocking
@@ -107,12 +116,14 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
   const ensureEditRow = useCallback(
     (pid) => {
       setEdits((prev) => {
+        console.log('ensureEditRow', prev)
         if (prev[pid]) return prev;
         return {
           ...prev,
           [pid]: {
             sales_stage_id: "",
             account_manager_id: leadAccountManagerId ? String(leadAccountManagerId) : "",
+            contact_id: ""
           },
         };
       });
@@ -122,9 +133,13 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
 
   const toggleProduct = useCallback(
     (productId) => {
+      console.log('toggleProduct', productId)
       const pid = normId(productId);
+      console.log('pid', pid)
       setSelectedProductIds((prev) => {
+        console.log('prev', prev)
         const next = new Set(prev);
+        console.log('next', next)
         next.has(pid) ? next.delete(pid) : next.add(pid);
         return next;
       });
@@ -147,6 +162,7 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
             next[pid] = {
               sales_stage_id: "",
               account_manager_id: leadAccountManagerId ? String(leadAccountManagerId) : "",
+              contact_id: ""
             };
           }
         }
@@ -158,10 +174,12 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
   const onEditField = useCallback((productId, patch) => {
     const pid = normId(productId);
     setEdits((prev) => {
+      console.log('onEditField')
       const base =
         prev[pid] ?? {
           sales_stage_id: "",
           account_manager_id: leadAccountManagerId ? String(leadAccountManagerId) : "",
+          contact_id: ""
         };
       return { ...prev, [pid]: { ...base, ...patch } };
     });
@@ -189,8 +207,8 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
         const account_manager_id =
           row.account_manager_id || (leadAccountManagerId ? String(leadAccountManagerId) : "");
 
-        const contactId = row.contact_id;
-        const notes = row.notes;
+        const contactId = row.contact_id || null
+        const notes = row.notes || ''
 
 
         return {
