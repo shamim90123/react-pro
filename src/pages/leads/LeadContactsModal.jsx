@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import SimpleModal from "@/components/ui/SimpleModal";
 import { LeadsApi } from "@/services/leads";
+import { SweetAlert } from "@/components/ui/SweetAlert";
+
 
 export default function LeadContactsModal({ open, onClose, lead }) {
   const [loading, setLoading] = useState(false);
@@ -200,14 +202,35 @@ export default function LeadContactsModal({ open, onClose, lead }) {
   };
 
   const handleDelete = async (contactId) => {
-    if (!confirm("Delete this contact?")) return;
+    // Ask for confirmation
+    const res = await SweetAlert.confirm({
+      title: "Delete contact?",
+      text: "This action cannot be undone.",
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+      confirmColor: "#dc2626", // Tailwind red-600 for emphasis
+    });
+
+    if (!res.isConfirmed) return;
+
     try {
       setLoading(true);
       await LeadsApi.removeContact(contactId);
+
+      // Optional: success toast
+      SweetAlert.success("Contact deleted");
+
+      // Keep pagination tidy (stay on page unless it becomes empty)
       const nextCount = items.length - 1;
       const nextPage =
         nextCount <= 0 && meta.current_page > 1 ? meta.current_page - 1 : meta.current_page;
+
       await load(nextPage);
+    } catch (e) {
+      // Optional: error toast
+      SweetAlert.error(
+        e?.response?.data?.message || "Failed to delete the contact"
+      );
     } finally {
       setLoading(false);
     }
@@ -294,7 +317,7 @@ export default function LeadContactsModal({ open, onClose, lead }) {
               onChange={(e) => setForm((f) => ({ ...f, primary_status: e.target.checked }))}
             />
             <label htmlFor="primary_status" className="text-sm text-gray-700">
-              Make primary contact
+              Select primary contact
             </label>
           </div>
 
