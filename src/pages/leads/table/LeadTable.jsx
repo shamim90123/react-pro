@@ -12,6 +12,8 @@ export default function LeadTable({
   onOpenDetails,
   onViewLead,
   onEditLead,
+  onOpenContacts,
+  onOpenNotes,
   onDeleteLead,
   onQuickFormSubmit, // NEW
   page = 1,
@@ -54,6 +56,8 @@ export default function LeadTable({
                 onOpenDetails={onOpenDetails}
                 onViewLead={onViewLead}
                 onEditLead={onEditLead}
+                onOpenContacts={onOpenContacts}   // ← forward
+                onOpenNotes={onOpenNotes}         // ← forward
                 onDeleteLead={onDeleteLead}
                 onQuickFormSubmit={onQuickFormSubmit} // NEW
                 onChangeStatus={onChangeStatus}

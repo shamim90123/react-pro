@@ -25,8 +25,9 @@ export default function LeadRow({
   users,
   usersLoading,
   assigning,
+  onOpenContacts,
+  onOpenNotes,
   onAssignAM,
-  onOpenDetails,
   onViewLead,
   onEditLead,
   onDeleteLead,
@@ -157,10 +158,11 @@ export default function LeadRow({
         </td>
 
         {/* Contacts */}
+
         <td className="px-6 py-3">
           <button
             className="text-indigo-600 underline-offset-2 hover:underline disabled:text-gray-400"
-            onClick={() => onOpenDetails(lead, "contacts")}
+            onClick={() => onOpenContacts?.(lead)}   // optional chaining prevents crash
             disabled={!lead.contacts_count}
             title="View contacts"
           >
@@ -172,7 +174,7 @@ export default function LeadRow({
         <td className="px-6 py-3">
           <button
             className="text-indigo-600 underline-offset-2 hover:underline disabled:text-gray-400"
-            onClick={() => onOpenDetails(lead, "notes")}
+            onClick={() => onOpenNotes(lead)}
             disabled={!lead.notes_count}
             title="View notes"
           >

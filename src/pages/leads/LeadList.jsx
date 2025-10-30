@@ -2,7 +2,8 @@
 import { useMemo, useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import LeadForm from "./LeadForm";
-import LeadDetailsModal from "./LeadListModal";
+import LeadContactsModal from "./LeadContactsModal";
+import LeadNotesModal from "./LeadNotesModal";
 import LeadTable from "./table/LeadTable";
 import Pagination from "@/components/layout/Pagination";
 import { useLeads } from "./hooks/useLeads";
@@ -13,13 +14,6 @@ export default function LeadList() {
   const navigate = useNavigate();
 
   const {
-    // ui
-    detailsOpen,
-    detailsLead,
-    detailsTab,
-    openDetails,
-    closeDetails,
-
     // data (keep using hook for users, countries, etc.)
     users,
     usersLoading,
@@ -45,6 +39,15 @@ export default function LeadList() {
   const [total, setTotal] = useState(0);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const [contactsOpen, setContactsOpen] = useState(false);
+  const [notesOpen,   setNotesOpen]   = useState(false);
+  const [detailsLead, setDetailsLead] = useState(null);
+
+  const openContacts = (lead) => { setDetailsLead(lead); setContactsOpen(true); };
+  const openNotes    = (lead) => { setDetailsLead(lead); setNotesOpen(true); };
+  const closeContacts = () => setContactsOpen(false);
+  const closeNotes    = () => setNotesOpen(false);
 
   // Filters
   const [leadName, setLeadName] = useState("");
@@ -189,7 +192,6 @@ export default function LeadList() {
         usersLoading={usersLoading}
         assigning={assigning}
         onAssignAM={handleAssignAMAndRefresh}
-        onOpenDetails={openDetails}
         onViewLead={handleViewLead}
         onEditLead={handleEditLead}
         onDeleteLead={handleAfterDelete}
@@ -197,6 +199,8 @@ export default function LeadList() {
         page={page}
         pageSize={pageSize}
         onChangeStatus={handleChangeStatus}
+        onOpenContacts={openContacts}
+        onOpenNotes={openNotes}
       />
 
       {/* Pagination */}
@@ -212,13 +216,8 @@ export default function LeadList() {
         }}
       />
 
-      {/* Details Modal */}
-      <LeadDetailsModal
-        open={detailsOpen}
-        onClose={closeDetails}
-        lead={detailsLead}
-        initialTab={detailsTab}
-      />
+      <LeadContactsModal open={contactsOpen}  onClose={closeContacts} lead={detailsLead} />
+      <LeadNotesModal    open={notesOpen}    onClose={closeNotes}    lead={detailsLead} />
     </div>
   );
 }
