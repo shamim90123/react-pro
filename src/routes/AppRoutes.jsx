@@ -7,8 +7,8 @@ import Login from "@/pages/auth/Login.jsx";
 import Dashboard from "@/pages/Dashboard.jsx";
 
 // Leads
-import LeadList from "@/pages/leads/LeadList.jsx";
-import LeadContactPage from "@/pages/leads/LeadView.jsx";
+import LeadList from "@/pages/leads/List/LeadList.jsx";
+import LeadContactPage from "@/pages/leads/View/LeadView.jsx";
 
 // Users
 import UserList from "@/pages/users/list.jsx";

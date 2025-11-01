@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import SimpleModal from "@/components/ui/SimpleModal";
-import { LeadsApi } from "@/services/leads";
+import { LeadsApi } from "./services/leads";
 
 export default function LeadDetailsModal({ open, onClose, lead, initialTab }) {
   const [loading, setLoading] = useState(false);

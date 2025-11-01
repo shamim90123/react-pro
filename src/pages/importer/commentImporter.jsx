@@ -1,7 +1,7 @@
 import { useState } from "react";
 import * as XLSX from "xlsx";
 import { SweetAlert } from "@/components/ui/SweetAlert";
-import { LeadsApi } from "@/services/leads"; // bulkUpsert(rows)
+import { LeadsApi } from "@/services/importer"; // bulkUpsert(rows)
 
 export default function LeadImporterSimple() {
   const [headers, setHeaders] = useState([]);      // dynamic column headers
