@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { useTheme } from "@/context/ThemeContext";
 
 // --------------------- Helper Functions ---------------------
 function getInitials(nameLike) {
@@ -44,7 +43,6 @@ export default function Header({ onToggleSidebar }) {
   const firstItemRef = useRef(null);
   const navigate = useNavigate();
   const { logout, user } = useAuth() || {};
-  const { theme } = useTheme();
 
   // Close dropdown on outside click or Escape key
   useEffect(() => {
