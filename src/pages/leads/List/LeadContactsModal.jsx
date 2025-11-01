@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import SimpleModal from "@/components/ui/SimpleModal";
-import { LeadsApi } from "@/services/leads";
+import { LeadsApi } from "../services/leads";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 
 

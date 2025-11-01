@@ -1,6 +1,6 @@
 // src/hooks/useComments.js
 import { useEffect, useState } from "react";
-import { LeadsApi } from "@/services/leads";
+import { LeadsApi } from "../services/leads";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 
 const normalizeMeta = (raw, fallbackPerPage = 10) => {

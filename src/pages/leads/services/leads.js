@@ -1,6 +1,5 @@
 // src/lib/leads.js
-import { comment } from "postcss";
-import api from "./api";
+import api from "@/services/api";
 
 const BASE = "/api/v1/leads";
 const CONTACT_BASE = "/api/v1/leads/{leadId}/contacts";
@@ -199,25 +198,6 @@ export const LeadsApi = {
     const res = await api.patch(`${BASE}/${id}/status`, { status }); // <-- changed to PATCH + /status
     return res.data;
   },
-
-  // UPDATE (single) -> uses the SAME upsert endpoint with `id`
-  updateContact: async (leadId, contactId, payload) => {
-    console.log(payload)
-    const body = {
-      id:         contactId,
-      first_name: payload.first_name,
-      last_name:  payload.last_name,
-      email:      payload.email ?? null,
-      phone:      payload.phone ?? null,
-      job_title:  payload.job_title ?? null,
-      department: payload.department ?? null,
-      is_primary: payload.is_primary ?? false, // optional control
-    };
-    const url = `/api/v1/leads/${leadId}/contacts`;
-    const res = await api.post(url, body);    // returns array of contacts (fresh)
-    return res.data;
-  },
-
 
 
 };

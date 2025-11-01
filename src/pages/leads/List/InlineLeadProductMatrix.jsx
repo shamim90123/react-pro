@@ -1,7 +1,7 @@
 // components/leads/table/InlineLeadProductMatrix.jsx
 import { useEffect, useMemo, useState } from "react";
 import { SweetAlert } from "@/components/ui/SweetAlert";
-import { LeadsApi } from "@/services/leads";
+import { LeadsApi } from "../services/leads";
 import { SaleStageApi } from "@/services/SaleStages";
 
 /**

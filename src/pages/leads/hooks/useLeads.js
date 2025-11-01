@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { LeadsApi } from "@/services/leads";
+import { LeadsApi } from "../services/leads";
 import { UsersApi } from "@/services/users";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 

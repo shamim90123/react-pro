@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { SweetAlert } from "@/components/ui/SweetAlert";
-import { LeadsApi } from "@/services/leads";
+import { LeadsApi } from "@/pages/leads/services/leads"
 import { UsersApi } from "@/services/users"; // must expose .list(): GET /api/users -> { data: [...] }
 
 function initials(name = "") {
