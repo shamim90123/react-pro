@@ -4,7 +4,7 @@ import CountrySelect from "./CountrySelect";
 export default function DestinationSelect(props) {
   return (
     <CountrySelect
-      placeholder="Select Destination"
+      placeholder="Select Country"
       {...props}
     />
   );

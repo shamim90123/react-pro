@@ -128,7 +128,7 @@ export default function LeadHeader({ lead, onManagerUpdated }) {
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         {/* Destination */}
         <div className="rounded-lg border border-gray-100 bg-gray-50 p-4">
-          <p className="text-xs uppercase text-gray-500">Destination</p>
+          <p className="text-xs uppercase text-gray-500">Country</p>
           <p className="mt-1 text-sm font-medium text-gray-800">
             {lead.destination?.name ?? "—"}
           </p>

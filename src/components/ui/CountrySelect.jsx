@@ -5,7 +5,7 @@ export default function CountrySelect({
   countries = [],        // [{id, name}]
   valueId,               // selected id (e.g., form.destination_id)
   onChangeId,            // (id|null) => void
-  placeholder = "Select Destination",
+  placeholder = "Select Country",
   isSearchable = true,
   className = "",
 }) {

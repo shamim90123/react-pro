@@ -1,28 +1,38 @@
-// src/pages/products/form.jsx
-
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { ProductsApi } from "@/services/products"; // Import Products API
+import { ProductsApi } from "@/services/products";
 
-const ProductFormPage = () => {
-  const { id } = useParams(); // For editing a product
+const initialForm = { name: "", status: "active" };
+
+export default function ProductFormPage() {
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: "", status: "active" });
+
+  const [form, setForm] = useState(initialForm);
+  const [loading, setLoading] = useState(!!id);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  const title = id ? "Edit Product" : "Add Product";
+  const canSave = useMemo(() => form.name.trim().length > 0 && !saving, [form.name, saving]);
 
   useEffect(() => {
-    if (id) {
-      // Fetch the existing product data if we're editing
-      const fetchProduct = async () => {
-        try {
-          const data = await ProductsApi.show(id); // Use ProductsApi to fetch product data
-          setForm(data);
-        } catch (error) {
-          console.error("Error fetching product data:", error);
-        }
-      };
-
-      fetchProduct();
-    }
+    if (!id) return;
+    (async () => {
+      try {
+        setLoading(true);
+        const data = await ProductsApi.show(id);
+        setForm({
+          name: data?.name ?? "",
+          status: data?.status ?? "active",
+        });
+      } catch (err) {
+        console.error("Error fetching product data:", err);
+        setError("Failed to load product data.");
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, [id]);
 
   const handleChange = (e) => {
@@ -32,68 +42,166 @@ const ProductFormPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!canSave) return;
 
     try {
-      const method = id ? "update" : "create";
+      setSaving(true);
+      setError("");
+      const payload = { ...form, name: form.name.trim() };
+
       if (id) {
-        // For edit, update the product
-        await ProductsApi.update(id, form); 
+        await ProductsApi.update(id, payload);
       } else {
-        // For add, create a new product
-        await ProductsApi.create(form); 
+        await ProductsApi.create(payload);
       }
 
-      navigate("/products"); // Navigate back to the product list page
-    } catch (error) {
-      console.error("Error saving product:", error);
-      alert("Error saving product");
+      navigate("/products");
+    } catch (err) {
+      console.error("Error saving product:", err);
+      setError("Error saving product. Please try again.");
+      setSaving(false);
     }
   };
 
+  const handleCancel = () => navigate("/products");
+
   return (
-    <div className="container mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">{id ? "Edit" : "Add"} Product</h1>
-      <form onSubmit={handleSubmit}>
-        <div className="flex mb-4 space-x-4">
-          {/* Product Name Field */}
-          <div className="w-1/2">
-            <label className="block text-sm font-medium mb-2">Product Name</label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-              required
-            />
-          </div>
+    <div className="mx-auto max-w-3xl px-4 py-8">
+      {/* Header */}
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
+          <p className="mt-1 text-sm text-gray-500">Fill in the product details below.</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleCancel}
+          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+        >
+          Cancel
+        </button>
+      </div>
 
-          {/* Status Field */}
-          <div className="w-1/2">
-            <label className="block text-sm font-medium mb-2">Status</label>
-            <select
-              name="status"
-              value={form.status}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg"
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
+      {/* Card */}
+      <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-100 px-5 py-4">
+          <h2 className="text-base font-medium text-gray-900">Product Details</h2>
         </div>
 
-        <div className="text-right">
-          <button
-            type="submit"
-            className=""
-          >
-            {id ? "Save Changes" : "Save"}
-          </button>
+        <div className="px-5 py-6">
+          {error && (
+            <div className="mb-5 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="space-y-2">
+                <div className="h-4 w-28 animate-pulse rounded bg-gray-200" />
+                <div className="h-10 w-full animate-pulse rounded bg-gray-200" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 w-20 animate-pulse rounded bg-gray-200" />
+                <div className="h-10 w-full animate-pulse rounded bg-gray-200" />
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Product Name */}
+                <div className="col-span-1">
+                  <label
+                    htmlFor="name"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    Product Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    name="name"
+                    value={form.name}
+                    onChange={handleChange}
+                    placeholder="e.g. English Foundation Program"
+                    required
+                    className="block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                  />
+                  <p className="mt-1 text-xs text-gray-500">Enter a unique product name.</p>
+                </div>
+
+                {/* Status */}
+                <div className="col-span-1">
+                  <label
+                    htmlFor="status"
+                    className="mb-1 block text-sm font-medium text-gray-700"
+                  >
+                    Status
+                  </label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={form.status}
+                    onChange={handleChange}
+                    className="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                  >
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    Inactive products will not be available in listings.
+                  </p>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="mt-8 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={handleCancel}
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!canSave}
+                  className="inline-flex items-center rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {saving ? (
+                    <>
+                      <svg
+                        className="mr-2 h-4 w-4 animate-spin"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        />
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                        />
+                      </svg>
+                      Saving…
+                    </>
+                  ) : id ? (
+                    "Save Changes"
+                  ) : (
+                    "Save"
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
-      </form>
+      </div>
     </div>
   );
-};
-
-export default ProductFormPage;
+}

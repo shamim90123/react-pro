@@ -36,7 +36,7 @@ export default function LeadSearchPanel({
         {/* Destination */}
         <div className="min-w-[180px] flex-1">
           <label className="mb-1 block text-xs font-medium text-gray-600">
-            Destination
+            Country
           </label>
           <DestinationSelect
             countries={countries}
