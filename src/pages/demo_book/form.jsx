@@ -1,7 +1,7 @@
 // src/pages/products/form.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { SaleStageApi } from "@/services/SaleStages";
+import { DemoBookApi } from "@/services/DemoBook";
 
 const initialForm = { name: "", status: "active", date_require: false };
 
@@ -24,7 +24,7 @@ export default function ProductFormPage() {
       try {
         setLoading(true);
         setError("");
-        const data = await SaleStageApi.show(id);
+        const data = await DemoBookApi.show(id);
         // ensure defaults so the form is always controlled
         setForm({
           name: data?.name ?? "",
@@ -56,9 +56,9 @@ export default function ProductFormPage() {
       const payload = { ...form, name: form.name.trim() };
 
       if (id) {
-        await SaleStageApi.update(id, payload);
+        await DemoBookApi.update(id, payload);
       } else {
-        await SaleStageApi.create(payload);
+        await DemoBookApi.create(payload);
       }
 
       navigate("/demo-book");
