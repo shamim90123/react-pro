@@ -2,13 +2,13 @@
 import { useMemo, useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import LeadForm from "./LeadForm";
-import LeadContactsModal from "./LeadContactsModal";
-import LeadNotesModal from "./LeadNotesModal";
-import LeadTable from "./LeadTable";
+import LeadContactsModal from "./ContactModal/ModalContact";
+import LeadNotesModal from "./NoteModal/ModalNote";
+import LeadTable from "./LeadTable/LeadTable";
 import Pagination from "@/components/layout/Pagination";
-import { LeadsApi } from "../services/leads";
+import { LeadsApi } from "../api/leadsApi";
 import { useLeads } from "../hooks/useLeads";
-import LeadSearchPanel from "./LeadSearchPanel";
+import LeadSearchPanel from "./SearchPanel";
 
 export default function LeadList() {
   const navigate = useNavigate();

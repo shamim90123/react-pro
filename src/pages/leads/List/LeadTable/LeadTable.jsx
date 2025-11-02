@@ -1,6 +1,5 @@
-// src/pages/leads/table/LeadTable.jsx
-import RowLoading from "./RowLoading";
-import LeadRow from "./LeadRow";
+import LeadTableSkeleton from "./LeadTableSkeleton";
+import LeadTableRow from "./Row";
 
 export default function LeadTable({
   loading,
@@ -15,7 +14,7 @@ export default function LeadTable({
   onOpenContacts,
   onOpenNotes,
   onDeleteLead,
-  onQuickFormSubmit, // NEW
+  onQuickFormSubmit,
   page = 1,
   pageSize = 10,
   onChangeStatus,
@@ -24,8 +23,6 @@ export default function LeadTable({
 
   return (
     <div className="relative overflow-x-auto overflow-y-visible rounded-lg border border-gray-200 bg-white shadow-sm">
-
-    {/* <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm"> */}
       <table className="min-w-full text-left text-sm text-gray-700">
         <thead className="bg-gray-100 text-xs font-semibold uppercase text-gray-600">
           <tr>
@@ -41,13 +38,12 @@ export default function LeadTable({
 
         <tbody>
           {loading ? (
-            <RowLoading colSpan={7} />
+            <LeadTableSkeleton rows={Math.min(pageSize || 10, 10)} />
           ) : hasLeads ? (
             leads.map((lead, i) => (
-              <LeadRow
+              <LeadTableRow
                 key={lead.id ?? i}
                 index={(page - 1) * pageSize + i}
-                // index={i}
                 lead={lead}
                 users={users}
                 usersLoading={usersLoading}
@@ -56,10 +52,10 @@ export default function LeadTable({
                 onOpenDetails={onOpenDetails}
                 onViewLead={onViewLead}
                 onEditLead={onEditLead}
-                onOpenContacts={onOpenContacts}   // ← forward
-                onOpenNotes={onOpenNotes}         // ← forward
+                onOpenContacts={onOpenContacts}
+                onOpenNotes={onOpenNotes}
                 onDeleteLead={onDeleteLead}
-                onQuickFormSubmit={onQuickFormSubmit} // NEW
+                onQuickFormSubmit={onQuickFormSubmit}
                 onChangeStatus={onChangeStatus}
               />
             ))
@@ -71,6 +67,7 @@ export default function LeadTable({
             </tr>
           )}
         </tbody>
+
       </table>
     </div>
   );
