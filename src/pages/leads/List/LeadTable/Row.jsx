@@ -1,9 +1,9 @@
 // src/pages/leads/table/LeadRow.jsx
 import { useState, useCallback, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import AccountManagerCell from "./AccountManagerCell";
-import LeadActions from "./LeadActions";
-import InlineLeadProductMatrix from "./InlineLeadProductMatrix";
+import AccountManagerCell from "./cells/AccountManagerCell";
+import LeadActions from "./Actions";
+import InlineLeadProductMatrix from "./cells/UniversityProductCell";
 
 function StatusPill({ value }) {
   const base =

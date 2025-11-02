@@ -7,11 +7,11 @@ import { useComments } from "@/pages/leads/hooks/useComments";
 import { useLeadContacts } from "@/pages/leads/hooks/useLeadContacts";
 import { useLeadProducts } from "@/pages/leads/hooks/useLeadProducts";
 
-import LeadHeader from "@/pages/leads/View/LeadHeader";
-import ContactsTable from "@/pages/leads/View/ContactsTable";
-import ContactForm from "@/pages/leads/View/ContactForm";
-import ProductsSection from "@/pages/leads/View/ProductsSection";
-import CommentsSection from "@/pages/leads/View/CommentsSection";
+import LeadHeader from "@/pages/leads/details/LeadHeader";
+import ContactsTable from "@/pages/leads/details/ContactsTable";
+import ContactForm from "@/pages/leads/details/ContactForm";
+import ProductsSection from "@/pages/leads/details/ProductsSection";
+import CommentsSection from "@/pages/leads/details/CommentsSection";
 import UISkeleton from "@/components/ui/UISkeleton";
 
 const COMMENTS_PAGE_SIZE = 10;
@@ -52,7 +52,6 @@ export default function LeadView() {
     edits,
     onEditField,
   } = useLeadProducts(leadId, lead?.account_manager_id);
-  console.log("edits ---", edits)
 
   // ---------- Comments ----------
   const {

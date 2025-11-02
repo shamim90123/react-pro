@@ -1,7 +1,7 @@
 // src/hooks/useLeadProducts.js
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ProductsApi } from "@/services/products";
-import { LeadsApi } from "../services/leads";
+import { LeadsApi } from "../api/leadsApi";
 import { UsersApi } from "@/services/users";
 import { SaleStageApi } from "@/services/SaleStages";
 import { SweetAlert } from "@/components/ui/SweetAlert";
@@ -74,8 +74,6 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
         notes: p?.pivot?.notes ? String(p.pivot.notes) : "",
       }));
 
-      console.log('arr', arr)
-
       // select current links
       setSelectedProductIds(new Set(arr.map((a) => a.id)));
 
@@ -116,7 +114,6 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
   const ensureEditRow = useCallback(
     (pid) => {
       setEdits((prev) => {
-        console.log('ensureEditRow', prev)
         if (prev[pid]) return prev;
         return {
           ...prev,
@@ -133,13 +130,9 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
 
   const toggleProduct = useCallback(
     (productId) => {
-      console.log('toggleProduct', productId)
       const pid = normId(productId);
-      console.log('pid', pid)
       setSelectedProductIds((prev) => {
-        console.log('prev', prev)
         const next = new Set(prev);
-        console.log('next', next)
         next.has(pid) ? next.delete(pid) : next.add(pid);
         return next;
       });
