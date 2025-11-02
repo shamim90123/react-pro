@@ -7,7 +7,7 @@ import LeadNotesModal from "./NoteModal/ModalNote";
 import LeadTable from "./LeadTable/LeadTable";
 import Pagination from "@/components/layout/Pagination";
 import { LeadsApi } from "../api/leadsApi";
-import { useLeads } from "../hooks/useLeads";
+import { useLeads } from "../hooks/useListLead";
 import LeadSearchPanel from "./SearchPanel";
 
 export default function LeadList() {
