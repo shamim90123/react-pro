@@ -26,6 +26,10 @@ import ProductFormPage from "@/pages/products/form.jsx";
 import SaleStageList from "@/pages/sale_stages/list.jsx";
 import SaleStageFormPage from "@/pages/sale_stages/form.jsx";
 
+// demo-book
+import DemoBookList from "@/pages/demo_book/list.jsx";
+import DemoBookFormPage from "@/pages/demo_book/form.jsx";
+
 
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
@@ -78,6 +82,10 @@ export const appRoutes = [
           { path: "/sale-stages", element: <SaleStageList /> },
           { path: "/sale-stages/new", element: <SaleStageFormPage /> },
           { path: "/sale-stages/:id/edit", element: <SaleStageFormPage /> },
+
+          { path: "/demo-book", element: <DemoBookList /> },
+          { path: "/demo-book/new", element: <DemoBookFormPage /> },
+          { path: "/demo-book/:id/edit", element: <DemoBookFormPage /> },
         ],
       },
     ],
