@@ -8,18 +8,18 @@ export default function ProductsSection({
   allSelected,
   onToggle,
   onToggleAll,
-  onSave,
-  // per-product settings
+  onSave,          // parent save handler
   stages = [],
   users = [],
-  edits = {},
-  onEditField,
+  edits = {},      // per-product draft edits: { [productId]: {...} }
+  onEditField,     // (pid, patch) => void
   contacts = [],
   demoBooks = [],
 }) {
   const [q, setQ] = useState("");
+  const [dateErrors, setDateErrors] = useState(() => new Set()); // productIds missing required date
 
-  // search
+  // --- search ---
   const filtered = useMemo(() => {
     if (!q?.trim()) return products;
     const needle = q.toLowerCase();
@@ -31,7 +31,7 @@ export default function ProductsSection({
   const total = products.length || 0;
   const selectedCount = selectedIds?.size || 0;
 
-  // select-all (indeterminate)
+  // --- select-all (indeterminate) ---
   const selectAllRef = useRef(null);
   const isIndeterminate = selectedCount > 0 && selectedCount < filtered.length;
   useEffect(() => {
@@ -40,8 +40,7 @@ export default function ProductsSection({
     }
   }, [isIndeterminate]);
 
-  const canSave = selectedCount > 0;
-
+  // --- options ---
   const stageOptions = useMemo(
     () => stages.map((s) => ({ value: String(s.id), label: s.name || s.title || `#${s.id}` })),
     [stages]
@@ -50,9 +49,6 @@ export default function ProductsSection({
     () => users.map((u) => ({ value: String(u.id), label: u.name })),
     [users]
   );
-
-  // Helper: local YYYY-MM-DD
-  const getTodayLocal = () => new Date().toLocaleDateString("en-CA");
 
   // Accepts Date | string | null and returns 'YYYY-MM-DD' or ''
   const toYMD = (val) => {
@@ -67,13 +63,12 @@ export default function ProductsSection({
 
     // 'YYYY-MM-DD HH:MM:SS' or 'YYYY/MM/DD ...'
     const m = s.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-    if (m) return `${m[1]}-${String(m[2]).padStart(2, "0")}-${String(m[3]).padStart(2, "0")}`;
+    if (m) return `${m[1]}-${String(m[2]).padStart(2,"0")}-${String(m[3]).padStart(2,"0")}`;
 
     // Fallback ISO parse
     const d = new Date(s.replace(" ", "T"));
     if (!isNaN(d)) return d.toLocaleDateString("en-CA");
 
-    // guard for weird values like '0000-00-00 00:00:00'
     return "";
   };
 
@@ -92,18 +87,13 @@ export default function ProductsSection({
 
   const findDemoOpt = (id) => demoBookOptions.find((o) => o.value === String(id));
 
-  /**
-   * One-time normalization for any preloaded datetime strings in edits:
-   * turns 'YYYY-MM-DD HH:MM:SS' into 'YYYY-MM-DD' so the <input type="date"> shows it.
-   */
+  // One-time normalisation for any preloaded datetimes in edits
   useEffect(() => {
     if (!filtered.length) return;
-
     filtered.forEach((p) => {
       const pid = String(p.id);
       const row = edits[pid];
       if (!row) return;
-
       const norm = toYMD(row.demo_book_date);
       if (row.demo_book_date && norm !== row.demo_book_date) {
         onEditField(pid, { demo_book_date: norm });
@@ -112,30 +102,44 @@ export default function ProductsSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtered]);
 
-  /**
-   * Initialise missing date for selected rows whose chosen demo book requires a date.
-   * Ensures the field isn't blank on first render after reload.
-   */
+  // --- validation helpers ---
+  const isRowMissingRequiredDate = (pid) => {
+    const row = edits[pid] || {};
+    const opt = findDemoOpt(row.demo_book_id);
+    if (!opt?.requiresDate) return false;
+    const val = toYMD(row.demo_book_date);
+    return !val;
+  };
+
+  // recompute dateErrors when inputs change (lightweight sync)
   useEffect(() => {
-    if (!demoBookOptions.length || !filtered.length) return;
-
-    const today = getTodayLocal();
-
-    filtered.forEach((p) => {
-      const pid = String(p.id);
-      if (!selectedIds.has(pid)) return;
-
-      const row = edits[pid] || {};
-      const opt = findDemoOpt(row.demo_book_id);
-      const needsDate = !!opt?.requiresDate;
-      const current = toYMD(row.demo_book_date);
-
-      if (needsDate && !current) {
-        onEditField(pid, { demo_book_date: today });
-      }
+    const next = new Set();
+    selectedIds.forEach((pidRaw) => {
+      const pid = String(pidRaw);
+      if (isRowMissingRequiredDate(pid)) next.add(pid);
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtered, selectedIds, demoBookOptions]);
+    setDateErrors(next);
+  }, [selectedIds, edits, demoBookOptions]);
+
+  const hasMissingRequiredDates = dateErrors.size > 0;
+  const canSave = selectedCount > 0 && !hasMissingRequiredDates && !loading;
+
+  // --- save with validation ---
+  const handleSave = () => {
+    // final guard before delegating to parent onSave
+    const offenders = [];
+    selectedIds.forEach((pidRaw) => {
+      const pid = String(pidRaw);
+      if (isRowMissingRequiredDate(pid)) offenders.push(pid);
+    });
+
+    if (offenders.length) {
+      setDateErrors(new Set(offenders));
+      // You can also show a toast here, if you have a global alert system in this component.
+      return;
+    }
+    onSave?.(); // pass through if valid
+  };
 
   return (
     <section className="mt-10 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
@@ -183,6 +187,13 @@ export default function ProductsSection({
         </div>
       </div>
 
+      {/* Validation banner */}
+      {hasMissingRequiredDates && (
+        <div className="mb-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          Some selected products require a <span className="font-medium">Demo date</span>. Please select the date to continue.
+        </div>
+      )}
+
       {/* Table */}
       <div className="overflow-auto rounded-lg border border-gray-200">
         <table className="min-w-full border-collapse text-sm">
@@ -202,18 +213,10 @@ export default function ProductsSection({
             {loading
               ? Array.from({ length: 8 }).map((_, i) => (
                   <tr key={`sk-${i}`}>
-                    <td className="px-3 py-3">
-                      <div className="h-4 w-4 animate-pulse rounded bg-gray-200" />
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="h-4 w-48 animate-pulse rounded bg-gray-200" />
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="h-8 w-48 animate-pulse rounded bg-gray-200" />
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="h-8 w-48 animate-pulse rounded bg-gray-200" />
-                    </td>
+                    <td className="px-3 py-3"><div className="h-4 w-4 animate-pulse rounded bg-gray-200" /></td>
+                    <td className="px-3 py-3"><div className="h-4 w-48 animate-pulse rounded bg-gray-200" /></td>
+                    <td className="px-3 py-3"><div className="h-8 w-48 animate-pulse rounded bg-gray-200" /></td>
+                    <td className="px-3 py-3"><div className="h-8 w-48 animate-pulse rounded bg-gray-200" /></td>
                   </tr>
                 ))
               : filtered.length > 0
@@ -225,10 +228,10 @@ export default function ProductsSection({
                   const amVal = row.account_manager_id ?? "";
                   const contactVal = row.contact_id ?? "";
                   const demoBookVal = row.demo_book_id ?? "";
-
                   const selectedDemoOpt = findDemoOpt(demoBookVal);
                   const requiresDate = !!selectedDemoOpt?.requiresDate;
                   const dateVal = toYMD(row.demo_book_date);
+                  const showDateError = checked && requiresDate && dateErrors.has(pid);
 
                   return (
                     <tr key={pid} className={checked ? "bg-indigo-50/40" : "bg-white"}>
@@ -247,18 +250,12 @@ export default function ProductsSection({
                         <select
                           className="w-56 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60"
                           value={amVal}
-                          onChange={(e) =>
-                            onEditField(pid, {
-                              account_manager_id: e.target.value,
-                            })
-                          }
+                          onChange={(e) => onEditField(pid, { account_manager_id: e.target.value })}
                           disabled={!checked}
                         >
                           <option value="">Select manager</option>
                           {userOptions.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </option>
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
                           ))}
                         </select>
                       </td>
@@ -282,16 +279,12 @@ export default function ProductsSection({
                         <select
                           className="w-56 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60"
                           value={stageVal}
-                          onChange={(e) =>
-                            onEditField(pid, { sales_stage_id: e.target.value })
-                          }
+                          onChange={(e) => onEditField(pid, { sales_stage_id: e.target.value })}
                           disabled={!checked}
                         >
                           <option value="">Select stage</option>
                           {stageOptions.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                              {opt.label}
-                            </option>
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
                           ))}
                         </select>
                       </td>
@@ -304,13 +297,11 @@ export default function ProductsSection({
                             value={demoBookVal}
                             onChange={(e) => {
                               const value = e.target.value;
-                              const opt = findDemoOpt(value);
-                              const needsDate = !!opt?.requiresDate;
-                              const existing = toYMD(row.demo_book_date);
-
+                              // don't auto-set any date; just clear error state recalculated by effect
                               onEditField(pid, {
                                 demo_book_id: value,
-                                demo_book_date: needsDate ? (existing || getTodayLocal()) : "",
+                                // if the newly selected demo book doesn't require date, clear any existing date
+                                demo_book_date: findDemoOpt(value)?.requiresDate ? toYMD(row.demo_book_date) : "",
                               });
                             }}
                             disabled={!checked}
@@ -318,32 +309,37 @@ export default function ProductsSection({
                             <option value="">Select Demo Book</option>
                             {demoBookOptions.map((opt) => (
                               <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                                {opt.requiresDate ? " (date required)" : ""}
+                                {opt.label}{opt.requiresDate ? " (date required)" : ""}
                               </option>
                             ))}
                           </select>
 
                           {requiresDate && (
                             <div className="flex items-center gap-2">
-                              <label className="text-xs text-gray-600 whitespace-nowrap">
-                                Demo date
-                              </label>
-                              <input
-                                type="date"
-                                className="w-40 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60 cursor-pointer"
-                                value={dateVal}
-                                onChange={(e) =>
-                                  onEditField(pid, { demo_book_date: toYMD(e.target.value) })
-                                }
-                                onClick={(e) => {
-                                  // open native picker on click (user gesture)
-                                  if (typeof e.target.showPicker === "function") {
-                                    e.target.showPicker();
+                              <label className="text-xs text-gray-600 whitespace-nowrap">Demo date</label>
+                              <div className="flex flex-col">
+                                <input
+                                  type="date"
+                                  className={
+                                    "w-40 rounded-md border bg-white px-2 py-1 text-sm outline-none focus:ring-2 disabled:opacity-60 cursor-pointer " +
+                                    (showDateError
+                                      ? "border-red-400 focus:ring-red-100"
+                                      : "border-gray-300 focus:border-indigo-500 focus:ring-indigo-100")
                                   }
-                                }}
-                                disabled={!checked}
-                              />
+                                  value={dateVal}
+                                  onChange={(e) =>
+                                    onEditField(pid, { demo_book_date: toYMD(e.target.value) })
+                                  }
+                                  onClick={(e) => {
+                                    if (typeof e.target.showPicker === "function") e.target.showPicker();
+                                  }}
+                                  disabled={!checked}
+                                  aria-invalid={showDateError || undefined}
+                                />
+                                {showDateError && (
+                                  <span className="mt-1 text-xs text-red-600">Date is required.</span>
+                                )}
+                              </div>
                             </div>
                           )}
                         </div>
@@ -354,16 +350,12 @@ export default function ProductsSection({
                         <select
                           className="w-48 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60"
                           value={contactVal}
-                          onChange={(e) =>
-                            onEditField(pid, { contact_id: e.target.value })
-                          }
+                          onChange={(e) => onEditField(pid, { contact_id: e.target.value })}
                           disabled={!checked}
                         >
                           <option value="">Select contact</option>
                           {contacts.map((contact) => (
-                            <option key={contact.id} value={contact.id}>
-                              {contact.name}
-                            </option>
+                            <option key={contact.id} value={contact.id}>{contact.name}</option>
                           ))}
                         </select>
                       </td>
@@ -395,9 +387,10 @@ export default function ProductsSection({
         <div className="flex items-center justify-end gap-2 border-t border-gray-200 px-3 py-3">
           <button
             type="button"
-            onClick={onSave}
+            onClick={handleSave}
             className="btn-primary disabled:cursor-not-allowed disabled:opacity-60"
-            disabled={!canSave || loading}
+            disabled={!canSave}
+            title={hasMissingRequiredDates ? "Please fill required demo dates" : undefined}
           >
             Save Selected Products ({selectedCount})
           </button>

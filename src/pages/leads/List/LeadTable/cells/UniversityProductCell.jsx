@@ -19,6 +19,9 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
   const [loading, setLoading] = useState(true);
   const [savingAll, setSavingAll] = useState(false);
 
+  // rows that currently fail "required date" validation
+  const [dateErrors, setDateErrors] = useState(() => new Set());
+
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -29,10 +32,12 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
           SaleStageApi.list(),
           DemoBookApi.list(),
         ]);
-        setRows(normalizeProducts(pRes?.data || []));
+        const normalized = normalizeProducts(pRes?.data || []);
+        setRows(normalized);
         setStages(sRes || []);
         setContacts(cRes.contacts || []);
         setDemoBooks(demoRes || []);
+        setDateErrors(new Set()); // reset any previous errors on reload
       } catch (err) {
         console.error(err);
         SweetAlert.error("Failed to load products/stages");
@@ -75,11 +80,42 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
   );
 
   const updateRow = (productId, patch) => {
-    setRows((rs) => rs.map((r) => (String(r.id) === String(productId) ? { ...r, ...patch } : r)));
+    setRows((rs) =>
+      rs.map((r) => (String(r.id) === String(productId) ? { ...r, ...patch } : r))
+    );
+
+    // live-clear the error for this row if it becomes valid
+    setDateErrors((prev) => {
+      const next = new Set(prev);
+      const newVal = { ...(rows.find((x) => String(x.id) === String(productId)) || {}), ...patch };
+
+      const needs = rowNeedsDemoDate(newVal, demoBookOptions);
+      const valid = !needs || (newVal.demo_book_date && /^\d{4}-\d{2}-\d{2}$/.test(newVal.demo_book_date));
+      if (valid) {
+        next.delete(String(productId));
+      } else if (needs && (!newVal.demo_book_date || !/^\d{4}-\d{2}-\d{2}$/.test(newVal.demo_book_date))) {
+        next.add(String(productId));
+      }
+      return next;
+    });
   };
 
   const handleSaveAll = async () => {
     if (!rows.length) return onClose?.();
+
+    // --- VALIDATE required date rows ---
+    const offenders = rows.filter((r) => {
+      const needs = rowNeedsDemoDate(r, demoBookOptions);
+      const hasValidDate = r.demo_book_date && /^\d{4}-\d{2}-\d{2}$/.test(r.demo_book_date);
+      return needs && !hasValidDate;
+    });
+
+    if (offenders.length > 0) {
+      const ids = new Set(offenders.map((r) => String(r.id)));
+      setDateErrors(ids);
+      SweetAlert.error("Please select a Demo date for all rows where it is required.");
+      return; // block saving
+    }
 
     setSavingAll(true);
     try {
@@ -109,9 +145,9 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
     }
   };
 
-  const rowNeedsDemoDate = (row) => {
+  const rowNeedsDemoDate = (row, options) => {
     if (!row.demo_book_id) return false;
-    const opt = demoBookOptions.find((o) => o.value === String(row.demo_book_id));
+    const opt = (options || demoBookOptions).find((o) => o.value === String(row.demo_book_id));
     return !!opt?.requiresDate;
   };
 
@@ -129,7 +165,7 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
             <col className="w-[10%]" /> {/* Note */}
           </colgroup>
 
-          <thead className="bg-gray-50 text-xs uppercase text-gray-600 sticky top-0 z-10">
+          <thead className="sticky top-0 z-10 bg-gray-50 text-xs uppercase text-gray-600">
             <tr>
               <th className="px-3 py-2 text-left font-semibold align-middle">Account Manager</th>
               <th className="px-3 py-2 text-left font-semibold align-middle">Product</th>
@@ -165,137 +201,153 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
                 </tr>
               ))
             ) : rows.length ? (
-              rows.map((r, idx) => (
-                <tr key={r.id ?? idx} className="bg-white">
-                  {/* Account Manager */}
-                  <td className="px-3 py-2 align-middle">
-                    <select
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                      value={r.account_manager_id ?? ""}
-                      onChange={(e) => updateRow(r.id, { account_manager_id: e.target.value })}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <option value="">Select manager</option>
-                      {userOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-
-                  {/* Product */}
-                  <td className="px-3 py-2 align-middle text-gray-800">
-                    <div className="truncate" title={r.name || r.title || `#${r.id}`}>
-                      {r.name || r.title || `#${r.id}`}
-                    </div>
-                  </td>
-
-                  {/* Stage */}
-                  <td className="px-3 py-2 align-middle">
-                    <select
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                      value={r.sales_stage_id ?? ""}
-                      onChange={(e) => updateRow(r.id, { sales_stage_id: e.target.value })}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <option value="">Select stage</option>
-                      {stageOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-
-                  {/* Book Demo */}
-                  <td className="px-3 py-2 align-middle">
-                    <div className="flex flex-col gap-2">
+              rows.map((r, idx) => {
+                const needsDate = rowNeedsDemoDate(r);
+                const hasError = dateErrors.has(String(r.id));
+                return (
+                  <tr key={r.id ?? idx} className="bg-white">
+                    {/* Account Manager */}
+                    <td className="px-3 py-2 align-middle">
                       <select
                         className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                        value={r.demo_book_id ?? ""}
-                        onChange={(e) => {
-                          const value = e.target.value;
-                          const requiresDate =
-                            demoBookOptions.find((o) => o.value === String(value))?.requiresDate ?? false;
-
-                          updateRow(r.id, {
-                            demo_book_id: value,
-                            demo_book_date: requiresDate ? (r.demo_book_date || getTodayLocal()) : "",
-                          });
-                        }}
+                        value={r.account_manager_id ?? ""}
+                        onChange={(e) => updateRow(r.id, { account_manager_id: e.target.value })}
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <option value="">Select option</option>
-                        {demoBookOptions.map((opt) => (
+                        <option value="">Select manager</option>
+                        {userOptions.map((opt) => (
                           <option key={opt.value} value={opt.value}>
                             {opt.label}
-                            {opt.requiresDate ? " (date required)" : ""}
                           </option>
                         ))}
                       </select>
+                    </td>
 
-                      {rowNeedsDemoDate(r) && (
-                        <div
-                          className="flex items-center gap-2"
-                          style={{ position: "relative", zIndex: 40 }}
+                    {/* Product */}
+                    <td className="px-3 py-2 align-middle text-gray-800">
+                      <div className="truncate" title={r.name || r.title || `#${r.id}`}>
+                        {r.name || r.title || `#${r.id}`}
+                      </div>
+                    </td>
+
+                    {/* Stage */}
+                    <td className="px-3 py-2 align-middle">
+                      <select
+                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                        value={r.sales_stage_id ?? ""}
+                        onChange={(e) => updateRow(r.id, { sales_stage_id: e.target.value })}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <option value="">Select stage</option>
+                        {stageOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+
+                    {/* Book Demo */}
+                    <td className="px-3 py-2 align-middle">
+                      <div className="flex flex-col gap-2">
+                        <select
+                          className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                          value={r.demo_book_id ?? ""}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const requiresDate =
+                              demoBookOptions.find((o) => o.value === String(value))?.requiresDate ?? false;
+
+                            updateRow(r.id, {
+                              demo_book_id: value,
+                              demo_book_date: requiresDate ? (r.demo_book_date || getTodayLocal()) : "",
+                            });
+                          }}
                           onClick={(e) => e.stopPropagation()}
                         >
-                          <label className="text-xs text-gray-600 whitespace-nowrap">Demo date</label>
+                          <option value="">Select option</option>
+                          {demoBookOptions.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                              {opt.requiresDate ? " (date required)" : ""}
+                            </option>
+                          ))}
+                        </select>
 
-                          {(() => {
-                            const inputId = `demo-date-${r.id}`;
-                            return (
-                              <input
-                                id={inputId}
-                                type="date"
-                                className="flex-1 rounded-md border border-gray-300 bg-white px-2 py-1 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 cursor-pointer"
-                                value={r.demo_book_date || ""}
-                                onChange={(e) => updateRow(r.id, { demo_book_date: e.target.value })}
-                                // IMPORTANT: open only on user click to avoid NotAllowedError
-                                onClick={(e) => {
-                                  if (typeof e.target.showPicker === "function") {
-                                    e.target.showPicker();
-                                  }
-                                }}
-                                style={{ position: "relative", zIndex: 50 }}
-                              />
-                            );
-                          })()}
-                        </div>
-                      )}
-                    </div>
-                  </td>
+                        {needsDate && (
+                          <div
+                            className="flex items-center gap-2"
+                            style={{ position: "relative", zIndex: 40 }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <label className="text-xs text-gray-600 whitespace-nowrap">Demo date</label>
 
-                  {/* Contact */}
-                  <td className="px-3 py-2 align-middle">
-                    <select
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                      value={r.contact_id ?? ""}
-                      onChange={(e) => updateRow(r.id, { contact_id: e.target.value })}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <option value="">Select Contact</option>
-                      {contactOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
+                            {(() => {
+                              const inputId = `demo-date-${r.id}`;
+                              return (
+                                <div className="flex flex-col flex-1">
+                                  <input
+                                    id={inputId}
+                                    type="date"
+                                    className={
+                                      "flex-1 rounded-md bg-white px-2 py-1 text-sm outline-none focus:ring-2 cursor-pointer " +
+                                      (hasError
+                                        ? "border border-red-400 focus:ring-red-100"
+                                        : "border border-gray-300 focus:border-indigo-500 focus:ring-indigo-100")
+                                    }
+                                    value={r.demo_book_date || ""}
+                                    onChange={(e) => updateRow(r.id, { demo_book_date: e.target.value })}
+                                    // IMPORTANT: open only on user click to avoid NotAllowedError
+                                    onClick={(e) => {
+                                      if (typeof e.target.showPicker === "function") {
+                                        e.target.showPicker();
+                                      }
+                                    }}
+                                    style={{ position: "relative", zIndex: 50 }}
+                                  />
+                                  {hasError && (
+                                    <span className="mt-1 text-xs text-red-600">
+                                      Date is required.
+                                    </span>
+                                  )}
+                                </div>
+                              );
+                            })()}
+                          </div>
+                        )}
+                      </div>
+                    </td>
 
-                  {/* Notes */}
-                  <td className="px-3 py-2 align-middle">
-                    <textarea
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
-                      value={r.notes || ""}
-                      onChange={(e) => updateRow(r.id, { notes: e.target.value })}
-                      rows={2}
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                  </td>
-                </tr>
-              ))
+                    {/* Contact */}
+                    <td className="px-3 py-2 align-middle">
+                      <select
+                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                        value={r.contact_id ?? ""}
+                        onChange={(e) => updateRow(r.id, { contact_id: e.target.value })}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <option value="">Select Contact</option>
+                        {contactOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+
+                    {/* Notes */}
+                    <td className="px-3 py-2 align-middle">
+                      <textarea
+                        className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                        value={r.notes || ""}
+                        onChange={(e) => updateRow(r.id, { notes: e.target.value })}
+                        rows={2}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td className="px-3 py-4 text-center text-xs text-gray-400" colSpan={6}>
