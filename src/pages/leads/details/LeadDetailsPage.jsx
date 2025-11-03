@@ -3,9 +3,9 @@ import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 
 import { normId } from "@/utils/id";
-import { useComments } from "@/pages/leads/hooks/useComments";
-import { useLeadContacts } from "@/pages/leads/hooks/useLeadContacts";
-import { useLeadProducts } from "@/pages/leads/hooks/useLeadProducts";
+import { useComments } from "@/pages/leads/hooks/useDetailComment";
+import { useLeadContacts } from "@/pages/leads/hooks/useDetailContact";
+import { useLeadProducts } from "@/pages/leads/hooks/useDetailProduct";
 
 import LeadHeader from "@/pages/leads/details/LeadHeader";
 import ContactsTable from "@/pages/leads/details/ContactsTable";
@@ -49,6 +49,7 @@ export default function LeadView() {
     saveSelectedProducts,
     stages,
     users,
+    demoBooks,
     edits,
     onEditField,
   } = useLeadProducts(leadId, lead?.account_manager_id);
@@ -132,6 +133,7 @@ export default function LeadView() {
         // new props for stage/AM workflow
         stages={stages}
         users={users}
+        demoBooks={demoBooks}
         edits={edits}
         contacts={contacts}
         onEditField={onEditField}

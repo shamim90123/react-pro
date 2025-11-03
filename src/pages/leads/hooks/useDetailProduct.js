@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { ProductsApi } from "@/services/products";
 import { LeadsApi } from "../api/leadsApi";
 import { UsersApi } from "@/services/users";
+import { DemoBookApi } from "@/services/DemoBook";
 import { SaleStageApi } from "@/services/SaleStages";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 import { normId } from "@/utils/id";
@@ -19,6 +20,7 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
   const [selectedProductIds, setSelectedProductIds] = useState(new Set());
   const [stages, setStages] = useState([]);
   const [users, setUsers] = useState([]);
+  const [demoBooks, setDemoBooks] = useState([]);
 
   // { [productId]: { sales_stage_id: string|"", account_manager_id: string|"" } }
   const [edits, setEdits] = useState({});
@@ -61,6 +63,21 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
     }
   }, []);
 
+  // demobooks are used as products in some setups
+  useEffect(() => {
+    const loadDemoBooks = async () => {
+      try {
+        const res = await DemoBookApi.list({ page: 1, perPage: PRODUCT_FETCH_LIMIT });
+        const items = Array.isArray(res) ? res : (res || []);
+        setDemoBooks(items);
+      } catch (e) {
+        console.error(e);
+        // non-blocking
+      }
+    };
+    loadDemoBooks();
+  }, []);
+
   const hydrateSelectedProducts = useCallback(async () => {
     if (!leadId) return;
     try {
@@ -72,6 +89,8 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
         am: p?.pivot?.account_manager_id ? String(p.pivot.account_manager_id) : "",
         contact: p?.pivot?.contact_id ? String(p.pivot.contact_id) : "",
         notes: p?.pivot?.notes ? String(p.pivot.notes) : "",
+        demoBookID: p?.pivot?.demo_book_id ? String(p.pivot.demo_book_id) : "",
+        demoBookDate: p?.pivot?.demo_book_date ? p.pivot.demo_book_date : "",
       }));
 
       // select current links
@@ -87,7 +106,9 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
             account_manager_id:
               a.am || (leadAccountManagerId ? String(leadAccountManagerId) : ""),
             contact_id: a.contact  || "",
-            notes: a.notes  || ""
+            notes: a.notes  || "",
+            demo_book_id: a.demoBookID  || "",
+            demo_book_date: a.demoBookDate  || "",
           };
         }
         return next;
@@ -120,7 +141,9 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
           [pid]: {
             sales_stage_id: "",
             account_manager_id: leadAccountManagerId ? String(leadAccountManagerId) : "",
-            contact_id: ""
+            contact_id: "",
+            demo_book_id: "",
+            demo_book_date: ""
           },
         };
       });
@@ -155,7 +178,9 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
             next[pid] = {
               sales_stage_id: "",
               account_manager_id: leadAccountManagerId ? String(leadAccountManagerId) : "",
-              contact_id: ""
+              contact_id: "",
+              demo_book_id: "",
+              demo_book_date: ""
             };
           }
         }
@@ -172,7 +197,9 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
         prev[pid] ?? {
           sales_stage_id: "",
           account_manager_id: leadAccountManagerId ? String(leadAccountManagerId) : "",
-          contact_id: ""
+          contact_id: "",
+          demo_book_id: "",
+          demo_book_date: ""
         };
       return { ...prev, [pid]: { ...base, ...patch } };
     });
@@ -202,6 +229,8 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
 
         const contactId = row.contact_id || null
         const notes = row.notes || ''
+        const demoBookId = row.demo_book_id || null
+        const demoBookDate = row.demo_book_date || null
 
 
         return {
@@ -210,6 +239,8 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
           account_manager_id: account_manager_id ? Number(account_manager_id) : null,
           contact_id: contactId ? Number(contactId) : null,
           notes: notes || null,
+          demo_book_id: demoBookId ? Number(demoBookId) : null,
+          demo_book_date: demoBookDate || null,
         };
       });
 
@@ -235,6 +266,7 @@ export function useLeadProducts(leadId, leadAccountManagerId) {
     // expose for table
     stages,
     users,
+    demoBooks,
     edits,
     onEditField,
   };
