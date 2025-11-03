@@ -11,11 +11,12 @@ export default function AccountManagerCell({
   const isBusy = assigning[lead.id] || usersLoading;
   const wrapRef = useRef(null);
 
-  const currentUserName = useMemo(() => {
+  const currentUser = useMemo(() => {
     if (!lead?.account_manager_id) return null;
-    const match = users.find((u) => String(u.id) === String(lead.account_manager_id));
-    return match?.name || lead?.account_manager?.name || "—";
-  }, [lead?.account_manager_id, lead?.account_manager, users]);
+    return users.find((u) => String(u.id) === String(lead.account_manager_id));
+  }, [lead?.account_manager_id, users]);
+
+  const currentUserName = currentUser?.name || lead?.account_manager?.name || null;
 
   // close edit on outside / ESC
   useEffect(() => {
@@ -38,24 +39,73 @@ export default function AccountManagerCell({
     setIsEditing(false);
   };
 
+  // User Image Component
+  const UserImage = ({ imageUrl, name, size = "lg" }) => {
+    const sizeClasses = {
+      sm: "h-6 w-6",
+      md: "h-8 w-8",
+      lg: "h-10 w-10"
+    };
+
+    return (
+      <div 
+        className={`flex items-center justify-center ${sizeClasses[size]} rounded-full border border-gray-200 overflow-hidden bg-gray-100 flex-shrink-0`}
+        title={name}
+      >
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt={name}
+            className="h-full w-full object-cover"
+            onError={(e) => {
+              e.target.style.display = 'none';
+              e.target.nextSibling.style.display = 'flex';
+            }}
+          />
+        ) : null}
+        <div 
+          className={`h-full w-full flex items-center justify-center ${
+            imageUrl ? 'hidden' : 'flex'
+          }`}
+        >
+          <span className="font-medium text-gray-600 text-xs uppercase">
+            {name?.charAt(0) || 'U'}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <td className="px-6 py-3">
       <div ref={wrapRef} className="min-w-[220px]">
         {!isEditing ? (
-          <div className="flex items-center gap-1 text-gray-900">
-            <p
-              className={`truncate text-sm ${
-                currentUserName ? "font-medium text-gray-900" : "text-gray-500"
-              }`}
-            >
-              {currentUserName || "No account manager"}
-            </p>
+          <div className="flex items-center gap-2 text-gray-900">
+            {/* User Avatar with Tooltip */}
+            {currentUserName && (
+              <UserImage 
+                imageUrl={currentUser?.image_url} 
+                name={currentUserName}
+                size="lg"
+              />
+            )}
+            
+            <div className="flex items-center gap-1 flex-1 min-w-0">
+              {/* <p
+                className={`truncate text-sm ${
+                  currentUserName ? "font-medium text-gray-900" : "text-gray-500"
+                }`}
+                title={currentUserName || "No account manager"}
+              >
+                {currentUserName || "No account manager"}
+              </p> */}
+              
               <button
                 type="button"
                 onClick={() => setIsEditing(true)}
                 disabled={isBusy}
                 className={`btn-icon hover:bg-gray-100 disabled:opacity-60 ${isBusy ? "cursor-not-allowed" : ""}`}
-                title={currentUserName ? "Edit" : "Add"}
+                title={currentUserName ? "Edit account manager" : "Add account manager"}
                 aria-label={currentUserName ? "Edit account manager" : "Add account manager"}
               >
                 {currentUserName ? (
@@ -68,6 +118,7 @@ export default function AccountManagerCell({
                   </svg>
                 )}
               </button>
+            </div>
           </div>
         ) : (
           <div className="flex items-center gap-2">
