@@ -18,7 +18,7 @@ const NAV_ITEMS = [
 const CONFIG_CHILDREN = [
   { to: "/products", label: "Products", icon: "📦", need: "products.view" },
   { to: "/sale-stages", label: "Sale Stages", icon: "📊", need: "stages.view" },
-  { to: "/demo-book", label: "Demo Book", icon:  "📚" },
+  { to: "/demo-book", label: "Demo Book", icon:  "📚,", need: "demo_book.view" },
 ];
 
 export default function Sidebar({ open, onClose }) {
