@@ -49,6 +49,7 @@ export default function LeadView() {
     saveSelectedProducts,
     stages,
     users,
+    demoBooks,
     edits,
     onEditField,
   } = useLeadProducts(leadId, lead?.account_manager_id);
@@ -132,6 +133,7 @@ export default function LeadView() {
         // new props for stage/AM workflow
         stages={stages}
         users={users}
+        demoBooks={demoBooks}
         edits={edits}
         contacts={contacts}
         onEditField={onEditField}

@@ -15,6 +15,7 @@ export default function ProductsSection({
   edits = {},
   onEditField,
   contacts = [],
+  demoBooks = [],
 }) {
   const [q, setQ] = useState("");
 
@@ -105,6 +106,7 @@ export default function ProductsSection({
               <th className="px-3 py-2 text-left font-semibold">Account Manager</th>
               <th className="px-3 py-2 text-left font-semibold">Product</th>
               <th className="px-3 py-2 text-left font-semibold">Stage</th>
+              <th className="px-3 py-2 text-left font-semibold">Demo Book</th>
               <th className="px-3 py-2 text-left font-semibold">Contact</th>
               <th className="px-3 py-2 text-left font-semibold">Notes</th>
             </tr>
@@ -136,6 +138,7 @@ export default function ProductsSection({
                   const stageVal = row.sales_stage_id ?? "";
                   const amVal = row.account_manager_id ?? "";
                   const contactVal = row.contact_id ?? ""
+                  const demoBookVal = row.demo_book_id ?? ""
 
                   return (
                     <tr key={pid} className={checked ? "bg-indigo-50/40" : "bg-white"}>
@@ -198,6 +201,26 @@ export default function ProductsSection({
                           {stageOptions.map((opt) => (
                             <option key={opt.value} value={opt.value}>
                               {opt.label}
+                            </option>
+                          ))}
+                        </select>
+                      </td>
+
+                      {/* demobook */}
+                      <td className="px-3 py-2 align-top">
+                        <select
+                          className="w-48 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 disabled:opacity-60"
+                          value={demoBookVal} // implement if needed
+                          onChange={(e) =>
+                            onEditField(pid, { demo_book_id: e.target.value })
+                          }
+                          disabled={!checked}
+                        >
+                          <option value="">Select Demo Book</option>
+                          {demoBooks.filter((demo) => demo.status === "active")
+                          .map((demo) => ( 
+                            <option key={demo.id} value={demo.id}>
+                              {demo.name}
                             </option>
                           ))}
                         </select>

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { SweetAlert } from "@/components/ui/SweetAlert";
 import { LeadsApi } from "../../../api/leadsApi";
 import { SaleStageApi } from "@/services/SaleStages";
+import { DemoBookApi } from "@/services/DemoBook";
 
 /**
  * Product-wise editable matrix with a single bulk Save/Cancel at the bottom.
@@ -21,6 +22,7 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
   const [rows, setRows] = useState([]);
   const [stages, setStages] = useState([]);
   const [contacts, setContacts] = useState([]);
+  const [demoBooks, setDemoBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingAll, setSavingAll] = useState(false);
 
@@ -28,14 +30,16 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
     const load = async () => {
       setLoading(true);
       try {
-        const [pRes, cRes, sRes] = await Promise.all([
+        const [pRes, cRes, sRes, demoRes] = await Promise.all([
           LeadsApi.getProducts(leadId),
           LeadsApi.get(leadId),
           SaleStageApi.list(),
+          DemoBookApi.list()
         ]);
         setRows(normalizeProducts(pRes?.data || []));
         setStages(sRes || []);
         setContacts(cRes.contacts || []);
+        setDemoBooks(demoRes || []);
       } catch (err) {
         console.error(err);
         SweetAlert.error("Failed to load products/stages");
@@ -59,6 +63,11 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
   const contactOptions = useMemo(
     () => contacts.map((s) => ({ value: String(s.id), label: s.name || s.title || `#${s.id}` })),
     [contacts]
+  );
+
+  const demoBookOptions = useMemo(
+    () => demoBooks.map((s) => ({ value: String(s.id), label: s.name || s.title || `#${s.id}`, demoBookDate: s.demo_book_date })),
+    [demoBooks]
   );
 
   const updateRow = (productId, patch) => {
@@ -106,7 +115,8 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
               {/* <th className="px-3 py-2 text-left font-semibold">#</th> */}
               <th className="px-3 py-2 text-left font-semibold">Account Manager</th>
               <th className="px-3 py-2 text-left font-semibold">Product</th>
-              <th className="px-3 py-2 text-left font-semibold">Sales Stage</th>
+              <th className="px-3 py-2 text-left font-semibold">Stage</th>
+              <th className="px-3 py-2 text-left font-semibold">Book Demo</th>
               <th className="px-3 py-2 text-left font-semibold">Contact</th>
               <th className="px-3 py-2 text-left font-semibold">Note</th>
             </tr>
@@ -153,6 +163,22 @@ export default function InlineLeadProductMatrix({ lead, users = [], onClose, onS
                     >
                       <option value="">Select stage</option>
                       {stageOptions.map((opt) => (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+
+
+                  <td className="px-3 py-2">
+                    <select
+                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100"
+                      value={r.demo_book_id ?? ""}
+                      onChange={(e) => updateRow(r.id, { demo_book_id: e.target.value })}
+                    >
+                      <option value="">Select Contact</option>
+                      {demoBookOptions.map((opt) => (
                         <option key={opt.value} value={opt.value}>
                           {opt.label}
                         </option>
@@ -232,6 +258,7 @@ function normalizeProducts(items) {
     const stage = p.sales_stage_id ?? p.stage_id ?? p?.pivot?.sales_stage_id ?? null;
     const am = p.account_manager_id ?? p?.pivot?.account_manager_id ?? null;
     const contact = p.contact_id ?? p?.pivot?.contact_id ?? null;
+    const bookDemo = p.demo_book_id ?? p?.pivot?.demo_book_id ?? null;
     const notes = p.notes ?? p?.pivot?.notes ?? null;
     return {
       id: p.id,
@@ -239,6 +266,7 @@ function normalizeProducts(items) {
       sales_stage_id: stage ? String(stage) : "",
       account_manager_id: am ? String(am) : "",
       contact_id: contact ? String(contact) : "",
+      demo_book_id: bookDemo ? String(bookDemo) : "",
       notes: notes || "",
     };
   });
