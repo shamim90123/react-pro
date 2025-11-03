@@ -38,6 +38,9 @@ import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
 import ChangePassword from "@/pages/auth/ChangePassword";
 
+import PermissionList from "@/pages/permissions/List.jsx";
+import PermissionForm from "@/pages/permissions/Form.jsx";
+
 
 // Optional NotFound
 import NotFound from "@/pages/NotFound.jsx";
@@ -92,6 +95,12 @@ export const appRoutes = [
           { path: "/demo-book", element: <DemoBookList /> },
           { path: "/demo-book/new", element: <DemoBookFormPage /> },
           { path: "/demo-book/:id/edit", element: <DemoBookFormPage /> },
+
+          { path: "/permissions", element: <PermissionList /> },
+          { path: "/permissions/new", element: <PermissionForm /> },
+          { path: "/permissions/:id/edit", element: <PermissionForm /> },
+
+          
         ],
       },
     ],

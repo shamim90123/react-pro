@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { to: "/comment-importer", label: "Comments Importer", icon: "💬", need: "leads.bulk-comment-import" },
   { to: "/users", label: "Users", icon: "👥", need: "users.view" },
   { to: "/roles", label: "Roles", icon: "👥", need: "roles.view" },
+  { to: "/permissions", label: "Permissions", icon: "👥", need: "roles.view" },
 ];
 
 const CONFIG_CHILDREN = [

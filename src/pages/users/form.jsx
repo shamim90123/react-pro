@@ -58,14 +58,9 @@ export default function UserFormPage() {
         setForm({
           name: data?.name ?? "",
           email: data?.email ?? "",
-<<<<<<< HEAD
           password: "",
           role: firstRole || "",
-=======
-          password: "", // keep empty for edit
-          role: data?.roles[0] ?? "staff",
           image: null,
->>>>>>> master
         });
         
         // Set image preview if user has an image
@@ -154,21 +149,11 @@ export default function UserFormPage() {
       }
 
       if (isEdit) {
-<<<<<<< HEAD
-        const payload = { name: form.name, email: form.email, roles: [form.role] }; // ✅ send array
-        if (form.password) payload.password = form.password;
-        await UsersApi.update(id, payload);
-        SweetAlert.success("User updated");
-      } else {
-        const payload = { ...form, roles: [form.role] }; // ✅ send array
-        delete payload.role;
-=======
         // For file uploads, use POST with _method=PUT
         payload.append('_method', 'PUT');
         await UsersApi.update(id, payload);
         SweetAlert.success("User updated");
       } else {
->>>>>>> master
         await UsersApi.create(payload);
         SweetAlert.success("User created");
       }
