@@ -6,17 +6,12 @@ import PublicOnlyRoute from "@/routes/PublicOnlyRoute";
 import Login from "@/pages/auth/Login.jsx";
 import Dashboard from "@/pages/Dashboard.jsx";
 
-// Leads
-import LeadList from "@/pages/leads/List/LeadsListPage.jsx";
-import LeadContactPage from "@/pages/leads/details/LeadDetailsPage.jsx";
-
 // Users
 import UserList from "@/pages/users/list.jsx";
 import UserFormPage from "@/pages/users/form.jsx";
 
 // Users
 import LeadImporter from "@/pages/importer/leadImporter.jsx";
-import CommentImporter from "@/pages/importer/commentImporter.jsx";
 
 // Products
 import ProductList from "@/pages/products/list.jsx";
@@ -29,10 +24,6 @@ import SaleStageFormPage from "@/pages/sale_stages/form.jsx";
 import RoleEdit from "@/pages/roles/RoleEdit";
 import RoleList from "@/pages/roles/RoleList";
 import RoleCreate from "@/pages/roles/RoleCreate";
-// demo-book
-import DemoBookList from "@/pages/demo_book/list.jsx";
-import DemoBookFormPage from "@/pages/demo_book/form.jsx";
-
 
 import ForgotPassword from "@/pages/auth/ForgotPassword";
 import ResetPassword from "@/pages/auth/ResetPassword";
@@ -69,13 +60,8 @@ export const appRoutes = [
           { path: "/role-create", element: <RoleCreate /> },
           { path: "/role-edit/:id", element: <RoleEdit /> },
 
-          // Leads
-          { path: "/leads", element: <LeadList /> },
-          { path: "/leads/:id/edit", element: <LeadContactPage /> },
-
             // import-lead
           { path: "/lead-importer", element: <LeadImporter /> },
-          { path: "/comment-importer", element: <CommentImporter /> },
 
           // Users
           { path: "/users", element: <UserList /> },
@@ -91,10 +77,6 @@ export const appRoutes = [
           { path: "/sale-stages", element: <SaleStageList /> },
           { path: "/sale-stages/new", element: <SaleStageFormPage /> },
           { path: "/sale-stages/:id/edit", element: <SaleStageFormPage /> },
-
-          { path: "/demo-book", element: <DemoBookList /> },
-          { path: "/demo-book/new", element: <DemoBookFormPage /> },
-          { path: "/demo-book/:id/edit", element: <DemoBookFormPage /> },
 
           { path: "/permissions", element: <PermissionList /> },
           { path: "/permissions/new", element: <PermissionForm /> },

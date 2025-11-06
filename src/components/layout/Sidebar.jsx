@@ -8,9 +8,7 @@ import { useAbility } from "@/hooks/useAbility";
 // Use `{ any: true }` if you want "OR" logic.
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: "🏠", need: "dashboard.view" },
-  { to: "/leads", label: "Universities", icon: "🎓", need: "leads.view" },
   { to: "/lead-importer", label: "Universities Importer", icon: "🎓", need: ["leads.bulk-import", "leads.bulk-comment-import"], any: true },
-  { to: "/comment-importer", label: "Comments Importer", icon: "💬", need: "leads.bulk-comment-import" },
   { to: "/users", label: "Users", icon: "👥", need: "users.view" },
   { to: "/roles", label: "Roles", icon: "👥", need: "roles.view" },
   { to: "/permissions", label: "Permissions", icon: "👥", need: "roles.view" },
@@ -19,7 +17,6 @@ const NAV_ITEMS = [
 const CONFIG_CHILDREN = [
   { to: "/products", label: "Products", icon: "📦", need: "products.view" },
   { to: "/sale-stages", label: "Sale Stages", icon: "📊", need: "stages.view" },
-  { to: "/demo-book", label: "Demo Book", icon:  "📚,", need: "demo_book.view" },
 ];
 
 export default function Sidebar({ open, onClose }) {
