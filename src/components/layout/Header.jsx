@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { Menu, Lock, LogOut } from "lucide-react";
+import { Menu, Lock, LogOut, User, Settings, ChevronDown, Bell } from "lucide-react";
 
 // --------------------- Helper Functions ---------------------
 function getInitials(nameLike) {
@@ -24,7 +24,7 @@ function nameFromUser(user) {
 function prettyRoleName(name = "") {
   return String(name)
     .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase()); // Title Case
+    .replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
 function roleNamesFromUser(user) {
@@ -39,62 +39,42 @@ function roleNamesFromUser(user) {
 // --------------------- Component ---------------------
 export default function Header({ onToggleSidebar }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const menuRef = useRef(null);
   const btnRef = useRef(null);
-  const firstItemRef = useRef(null);
+  const notificationsRef = useRef(null);
   const navigate = useNavigate();
   const { logout, user } = useAuth() || {};
 
-  // Close dropdown on outside click or Escape key
+  // Close dropdowns on outside click or Escape key
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (!menuOpen) return;
-      if (
-        menuRef.current &&
-        !menuRef.current.contains(e.target) &&
-        btnRef.current &&
-        !btnRef.current.contains(e.target)
-      ) {
+      if (menuOpen && 
+          !menuRef.current?.contains(e.target) && 
+          !btnRef.current?.contains(e.target)) {
         setMenuOpen(false);
       }
+      if (notificationsOpen && 
+          !notificationsRef.current?.contains(e.target)) {
+        setNotificationsOpen(false);
+      }
     };
-    const handleEsc = (e) => e.key === "Escape" && setMenuOpen(false);
+
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        setMenuOpen(false);
+        setNotificationsOpen(false);
+      }
+    };
+
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEsc);
+    
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
       document.removeEventListener("keydown", handleEsc);
     };
-  }, [menuOpen]);
-
-  // Simple keyboard navigation inside dropdown
-  useEffect(() => {
-    const onKey = (e) => {
-      if (!menuOpen || !menuRef.current) return;
-      const items = Array.from(
-        menuRef.current.querySelectorAll('[role="menuitem"]')
-      );
-      if (!items.length) return;
-
-      const idx = items.findIndex((el) => el === document.activeElement);
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        const next = items[(idx + 1 + items.length) % items.length];
-        next?.focus();
-      } else if (e.key === "ArrowUp") {
-        e.preventDefault();
-        const prev = items[(idx - 1 + items.length) % items.length];
-        prev?.focus();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [menuOpen]);
-
-  // Focus first item when menu opens
-  useEffect(() => {
-    if (menuOpen) setTimeout(() => firstItemRef.current?.focus(), 30);
-  }, [menuOpen]);
+  }, [menuOpen, notificationsOpen]);
 
   const handleLogout = () => {
     logout?.();
@@ -109,168 +89,288 @@ export default function Header({ onToggleSidebar }) {
   const roleNames = roleNamesFromUser(user);
   const roleLabel = roleNames.map(prettyRoleName).join(", ");
 
-  // --------------------- JSX ---------------------
-  return (
-    <header className="sticky top-0 z-40 bg-[var(--color-background)] border-b border-gray-200">
-      <div className="h-14 px-4 flex items-center justify-between">
-        {/* Sidebar Toggle (Mobile) */}
-        <button
-          onClick={onToggleSidebar}
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100"
-          aria-label="Toggle sidebar"
-        >
-          <Menu className="h-6 w-6" />
-        </button>
+  // Mock notifications data
+  const notifications = [
+    { id: 1, text: "New user registered", time: "5 min ago", unread: true },
+    { id: 2, text: "System backup completed", time: "1 hour ago", unread: true },
+    { id: 3, text: "Weekly report generated", time: "2 hours ago", unread: false },
+  ];
 
-        {/* Logo */}
-        <Link to="/dashboard" className="flex items-center gap-2">
-          <img
-            src="/img/logo.png"
-            alt="SAMS Backend"
-            className="h-7 w-auto"
-            loading="eager"
-            decoding="async"
-          />
-        </Link>
+  const unreadCount = notifications.filter(n => n.unread).length;
+
+  return (
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100/80 shadow-sm">
+      <div className="h-16 px-6 flex items-center justify-between">
+        {/* Left Section */}
+        <div className="flex items-center gap-4">
+          {/* Sidebar Toggle */}
+          <button
+            onClick={onToggleSidebar}
+            className="p-2 rounded-xl hover:bg-gray-50/80 transition-all duration-200 
+                     border border-transparent hover:border-gray-200/50
+                     focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/30"
+            aria-label="Toggle sidebar"
+          >
+            <Menu className="h-5 w-5 text-gray-600" />
+          </button>
+
+          {/* Logo */}
+          <Link 
+            to="/dashboard" 
+            className="flex items-center gap-3 group transition-all duration-200"
+          >
+            <div className="relative">
+              <img
+                src="/img/logo.png"
+                alt="SAMS Backend"
+                className="h-8 w-auto transition-transform group-hover:scale-105"
+                loading="eager"
+                decoding="async"
+              />
+              <div className="absolute inset-0 bg-blue-500/10 rounded-lg group-hover:bg-blue-500/20 transition-colors" />
+            </div>
+            <div className="hidden sm:block">
+              <div className="text-sm font-semibold text-gray-900 leading-tight">
+                SAMS Backend
+              </div>
+              <div className="text-xs text-gray-500 leading-tight">
+                Admin Portal
+              </div>
+            </div>
+          </Link>
+        </div>
 
         {/* Right Section */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          {/* Notifications */}
+          <div className="relative" ref={notificationsRef}>
+            <button
+              onClick={() => setNotificationsOpen(!notificationsOpen)}
+              className="relative p-2 rounded-xl hover:bg-gray-50/80 transition-all duration-200
+                       border border-transparent hover:border-gray-200/50
+                       focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/30
+                       group"
+              aria-label="Notifications"
+            >
+              <Bell className="h-5 w-5 text-gray-600 group-hover:text-gray-700 transition-colors" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white 
+                               text-xs rounded-full flex items-center justify-center 
+                               border-2 border-white font-medium animate-pulse">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notifications Dropdown */}
+            {notificationsOpen && (
+              <div className="absolute right-0 top-full mt-2 w-80 origin-top-right 
+                            animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="rounded-2xl border border-gray-200/80 bg-white/95 backdrop-blur-xl 
+                              shadow-xl ring-1 ring-black/5 overflow-hidden">
+                  {/* Header */}
+                  <div className="px-4 py-3 border-b border-gray-100/80 bg-gradient-to-r from-gray-50/50 to-white/50">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-semibold text-gray-900">Notifications</h3>
+                      {unreadCount > 0 && (
+                        <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
+                          {unreadCount} new
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Notifications List */}
+                  <div className="max-h-96 overflow-y-auto">
+                    {notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        className={`px-4 py-3 border-b border-gray-50 last:border-b-0 
+                                  hover:bg-gray-50/50 transition-colors cursor-pointer
+                                  ${notification.unread ? 'bg-blue-50/30' : ''}`}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 
+                                        ${notification.unread ? 'bg-blue-500 animate-pulse' : 'bg-gray-300'}`} />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-gray-900 leading-tight">
+                              {notification.text}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {notification.time}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Footer */}
+                  <div className="px-4 py-3 bg-gray-50/30 border-t border-gray-100/80">
+                    <button className="w-full text-center text-sm text-blue-600 hover:text-blue-700 
+                                     font-medium transition-colors">
+                      View all notifications
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* User Dropdown */}
           <div className="relative">
             <button
               ref={btnRef}
-              onClick={() => setMenuOpen((v) => !v)}
-              className="group flex items-center gap-2 rounded-lg px-1 py-1 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="group flex items-center gap-3 rounded-xl px-3 py-2 transition-all duration-200
+                       border border-transparent hover:border-gray-200/50 hover:bg-gray-50/80
+                       focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500/30"
               aria-haspopup="menu"
               aria-expanded={menuOpen}
               aria-controls="user-menu"
             >
-              {/* Avatar or Initials */}
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt={`${displayName} avatar`}
-                  className="h-8 w-8 rounded-full ring-1 ring-gray-200 transition group-hover:ring-indigo-300 object-cover"
-                />
-              ) : (
-                <div
-                  aria-hidden
-                  className="h-8 w-8 rounded-full ring-1 ring-gray-200 bg-indigo-600 text-white grid place-items-center text-xs font-semibold"
-                  title={displayName}
-                >
-                  {getInitials(displayName)}
+              {/* Avatar */}
+              <div className="relative">
+                {avatarUrl ? (
+                  <img
+                    src={avatarUrl}
+                    alt={`${displayName} avatar`}
+                    className="h-8 w-8 rounded-full ring-2 ring-white/80 
+                             group-hover:ring-blue-100 transition-all duration-200 object-cover
+                             shadow-sm group-hover:shadow-md"
+                  />
+                ) : (
+                  <div
+                    className="h-8 w-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 
+                             text-white flex items-center justify-center text-sm font-semibold
+                             ring-2 ring-white/80 group-hover:ring-blue-100 transition-all duration-200
+                             shadow-sm group-hover:shadow-md"
+                  >
+                    {getInitials(displayName)}
+                  </div>
+                )}
+                {/* Online indicator */}
+                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full 
+                              border-2 border-white bg-emerald-500" />
+              </div>
+
+              {/* User info - hidden on mobile */}
+              <div className="hidden sm:block text-left min-w-0">
+                <div className="text-sm font-medium text-gray-900 truncate max-w-[120px]">
+                  {displayName}
                 </div>
-              )}
+                <div className="text-xs text-gray-500 truncate max-w-[120px]">
+                  {roleLabel || "User"}
+                </div>
+              </div>
 
-              {/* Optional inline role badge */}
-              {roleLabel && (
-                <span className="hidden sm:inline-block rounded-md bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-700">
-                  {roleNames.length === 1
-                    ? prettyRoleName(roleNames[0])
-                    : "Roles"}
-                </span>
-              )}
-
-              {/* Caret */}
-              <svg
-                className={`h-4 w-4 text-gray-500 transition-transform ${
-                  menuOpen ? "rotate-180" : ""
-                }`}
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="M5.25 7.5L10 12.25L14.75 7.5H5.25Z" />
-              </svg>
+              <ChevronDown 
+                className={`h-4 w-4 text-gray-400 transition-transform duration-200 
+                          group-hover:text-gray-600 ${menuOpen ? "rotate-180" : ""}`}
+              />
             </button>
 
             {/* Dropdown Menu */}
-            <div
-              className={`absolute right-0 z-50 mt-2 w-72 origin-top-right transition-all duration-150 ${
-                menuOpen
-                  ? "scale-100 opacity-100 translate-y-0"
-                  : "pointer-events-none scale-95 opacity-0 -translate-y-1"
-              }`}
-            >
-              {/* caret */}
-              <div className="absolute -top-2 right-6 h-3 w-3 rotate-45 rounded-sm bg-white shadow-[0_0_0_1px_rgba(0,0,0,0.06)]" />
-
+            {menuOpen && (
               <div
                 ref={menuRef}
                 id="user-menu"
-                role="menu"
-                aria-label="User menu"
-                className="overflow-hidden rounded-xl border border-gray-200 bg-white/95 backdrop-blur-sm shadow-xl ring-1 ring-black/5"
+                className="absolute right-0 top-full mt-2 w-72 origin-top-right 
+                         animate-in fade-in slide-in-from-top-2 duration-200"
               >
-                {/* Profile Header */}
-                <div className="relative border-b border-gray-100">
-                  <div className="h-12 bg-gradient-to-r from-indigo-50 via-slate-50 to-emerald-50" />
-                  <div className="px-4 pb-3 -mt-6 flex items-center gap-3">
-                    {avatarUrl ? (
-                      <img
-                        src={avatarUrl}
-                        alt={`${displayName} avatar`}
-                        className="h-12 w-12 rounded-full border border-white shadow-md object-cover"
-                      />
-                    ) : (
-                      <div className="h-12 w-12 rounded-full border border-white shadow-md bg-indigo-600 text-white grid place-items-center text-sm font-semibold">
-                        {getInitials(displayName)}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-semibold text-gray-900">
+                <div className="rounded-2xl border border-gray-200/80 bg-white/95 backdrop-blur-xl 
+                              shadow-xl ring-1 ring-black/5 overflow-hidden">
+                  {/* Profile Header */}
+                  <div className="relative bg-gradient-to-br from-blue-50/50 via-white to-gray-50/50 
+                                border-b border-gray-100/80 p-6">
+                    <div className="flex items-center gap-4">
+                      {avatarUrl ? (
+                        <img
+                          src={avatarUrl}
+                          alt={`${displayName} avatar`}
+                          className="h-12 w-12 rounded-full ring-2 ring-white/80 
+                                   shadow-md object-cover"
+                        />
+                      ) : (
+                        <div
+                          className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 
+                                   text-white flex items-center justify-center text-base font-semibold
+                                   ring-2 ring-white/80 shadow-md"
+                        >
+                          {getInitials(displayName)}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-semibold text-gray-900 truncate">
                           {displayName}
-                        </p>
-                        {roleLabel && (
-                          <span className="shrink-0 rounded-full border border-indigo-100 bg-indigo-50 px-2 py-0.5 text-[10px] font-medium text-indigo-700">
-                            {roleLabel}
-                          </span>
-                        )}
-                      </div>
-                      {!!displayEmail && (
-                        <p className="truncate text-xs text-gray-500">
+                        </h3>
+                        <p className="text-xs text-gray-500 truncate mt-1">
                           {displayEmail}
                         </p>
-                      )}
+                        {roleLabel && (
+                          <div className="mt-2">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full 
+                                           text-xs font-medium bg-blue-100 text-blue-700 
+                                           border border-blue-200/60">
+                              {roleLabel}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Menu Items */}
-                <div className="py-1">
-                  <Link
-                      to="/change-password"
-                      role="menuitem"
-                      ref={firstItemRef}
+                  {/* Menu Items */}
+                  <div className="p-2">
+                    <Link
+                      to="/profile"
                       onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                      tabIndex={0}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 
+                               hover:bg-gray-50/80 transition-all duration-200 
+                               focus:outline-none focus:bg-gray-50/80 group"
                     >
-                      <Lock className="h-4 w-4 text-gray-600" />
-                      Change Password
+                      <User className="h-4 w-4 text-gray-500 group-hover:text-gray-700" />
+                      <span>View Profile</span>
                     </Link>
 
-
-                  <Link
-                      role="menuitem"
-                      onClick={() => {
-                        setMenuOpen(false);
-                        handleLogout();
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                      tabIndex={1}
+                    <Link
+                      to="/settings"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 
+                               hover:bg-gray-50/80 transition-all duration-200 
+                               focus:outline-none focus:bg-gray-50/80 group"
                     >
-                      <LogOut className="h-4 w-4 text-gray-600" />
-                      Logout
+                      <Settings className="h-4 w-4 text-gray-500 group-hover:text-gray-700" />
+                      <span>Account Settings</span>
                     </Link>
 
+                    <Link
+                      to="/change-password"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 
+                               hover:bg-gray-50/80 transition-all duration-200 
+                               focus:outline-none focus:bg-gray-50/80 group"
+                    >
+                      <Lock className="h-4 w-4 text-gray-500 group-hover:text-gray-700" />
+                      <span>Change Password</span>
+                    </Link>
+
+                    <div className="h-px bg-gray-200/60 my-2" />
+
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm 
+                               text-red-600 hover:bg-red-50/80 transition-all duration-200 
+                               focus:outline-none focus:bg-red-50/80 group"
+                    >
+                      <LogOut className="h-4 w-4 group-hover:text-red-700" />
+                      <span>Sign out</span>
+                    </button>
+                  </div>
                 </div>
-
               </div>
-            </div>
+            )}
           </div>
-          {/* End user dropdown */}
         </div>
       </div>
     </header>

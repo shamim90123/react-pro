@@ -6,7 +6,7 @@ import { useAbility } from "@/hooks/useAbility";
 // Lucide Icons
 import {
   LayoutDashboard,
-  GraduationCap,
+  Database,
   Users,
   Shield,
   KeyRound,
@@ -14,29 +14,34 @@ import {
   BarChart3,
   Settings,
   ChevronDown,
-  UserCog,
+  Users2,
 } from "lucide-react";
 
-// -------------------------
-// MAIN MENU (EXCEPT USER MANAGEMENT)
-// -------------------------
+/* -----------------------------
+   MAIN MENU + USER MANAGEMENT
+------------------------------ */
+
 const NAV_ITEMS = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, need: "dashboard.view" },
-  { to: "/lead-importer", label: "Universities Importer", icon: GraduationCap, need: ["leads.bulk-import", "leads.bulk-comment-import"], any: true },
+
+  // Updated icon for Data Importer
+  { to: "/lead-importer", label: "Data Importer", icon: Database, need: ["leads.bulk-import", "leads.bulk-comment-import"], any: true },
 ];
 
-// -------------------------
-// USER MANAGEMENT SUBMENU
-// -------------------------
+/* -----------------------------
+   USER MANAGEMENT SUBMENU
+------------------------------ */
+
 const USER_MANAGEMENT_ITEMS = [
-  { to: "/users", label: "Users", icon: Users, need: "users.view" },
+  { to: "/users", label: "Users", icon: Users2, need: "users.view" },
   { to: "/roles", label: "Roles", icon: Shield, need: "roles.view" },
   { to: "/permissions", label: "Permissions", icon: KeyRound, need: "roles.view" },
 ];
 
-// -------------------------
-// CONFIGURATION SUBMENU
-// -------------------------
+/* -----------------------------
+   CONFIGURATION SUBMENU
+------------------------------ */
+
 const CONFIG_CHILDREN = [
   { to: "/products", label: "Products", icon: Package, need: "products.view" },
   { to: "/sale-stages", label: "Sale Stages", icon: BarChart3, need: "stages.view" },
@@ -44,24 +49,22 @@ const CONFIG_CHILDREN = [
 
 export default function Sidebar({ open, onClose }) {
   const location = useLocation();
+  const [configOpen, setConfigOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const { can } = useAbility();
 
-  // States for collapsible menus
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const [configOpen, setConfigOpen] = useState(false);
+  /* -----------------------------
+      FILTER PERMISSION ITEMS
+  ------------------------------ */
 
-  // -------------------------
-  // FILTER ITEMS BY ABILITY
-  // -------------------------
-  const navItems = useMemo(
-    () =>
-      NAV_ITEMS.filter((it) =>
-        it.any ? can(it.need, { any: true }) : can(it.need)
-      ),
+  const mainItems = useMemo(
+    () => NAV_ITEMS.filter((it) =>
+      it.any ? can(it.need, { any: true }) : can(it.need)
+    ),
     [can]
   );
 
-  const userManagementChildren = useMemo(
+  const userManagementItems = useMemo(
     () =>
       USER_MANAGEMENT_ITEMS.filter((it) =>
         it.any ? can(it.need, { any: true }) : can(it.need)
@@ -77,25 +80,21 @@ export default function Sidebar({ open, onClose }) {
     [can]
   );
 
-  // -------------------------
-  // AUTO OPEN USER MANAGEMENT IF INSIDE
-  // -------------------------
-  const isUserChildActive = useMemo(
-    () => userManagementChildren.some((c) => location.pathname.startsWith(c.to)),
-    [userManagementChildren, location.pathname]
+  /* -----------------------------
+      AUTO EXPAND MENUS ON ACTIVE
+  ------------------------------ */
+
+  const isUserMenuActive = userManagementItems.some((c) =>
+    location.pathname.startsWith(c.to)
+  );
+
+  const isConfigChildActive = configurationChildren.some((c) =>
+    location.pathname.startsWith(c.to)
   );
 
   useEffect(() => {
-    if (isUserChildActive) setUserMenuOpen(true);
-  }, [isUserChildActive]);
-
-  // -------------------------
-  // AUTO OPEN CONFIG MENU IF ACTIVE
-  // -------------------------
-  const isConfigChildActive = useMemo(
-    () => configurationChildren.some((c) => location.pathname.startsWith(c.to)),
-    [configurationChildren, location.pathname]
-  );
+    if (isUserMenuActive) setUserMenuOpen(true);
+  }, [isUserMenuActive]);
 
   useEffect(() => {
     if (isConfigChildActive) setConfigOpen(true);
@@ -105,20 +104,14 @@ export default function Sidebar({ open, onClose }) {
     onClose?.();
   }, [location.pathname]);
 
-  const showConfig = configurationChildren.length > 0;
-  const showUserManagement = userManagementChildren.length > 0;
-
   return (
     <>
-      {/* Background Overlay for Mobile */}
       {open && (
         <div onClick={onClose} className="fixed inset-0 bg-black/30 z-40 md:hidden" />
       )}
 
-      {/* Sidebar */}
       <aside
         id="app-sidebar"
-        aria-label="Sidebar"
         className={`fixed md:static z-50 h-[calc(100dvh-56px)]
         top-14 left-0 w-64 bg-[var(--color-background)]
         border-r border-gray-200 transform transition-transform
@@ -126,8 +119,8 @@ export default function Sidebar({ open, onClose }) {
       >
         <nav className="p-3 space-y-1">
 
-          {/* MAIN MENU ITEMS */}
-          {navItems.map((item) => {
+          {/* MAIN MENU */}
+          {mainItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
@@ -136,10 +129,9 @@ export default function Sidebar({ open, onClose }) {
                 end
                 className={({ isActive }) =>
                   `flex items-center gap-3 px-3 py-2 rounded-lg text-sm
-                    ${isActive
-                      ? "bg-[#282560]/10 text-[#282560] font-medium"
-                      : "text-gray-700 hover:bg-gray-100"
-                    }`
+                   ${isActive
+                    ? "bg-[#282560]/10 text-[#282560] font-medium"
+                    : "text-gray-700 hover:bg-gray-100"}`
                 }
               >
                 <Icon className="h-5 w-5" />
@@ -148,22 +140,20 @@ export default function Sidebar({ open, onClose }) {
             );
           })}
 
-          {/* -------------------------
-              USER MANAGEMENT SECTION
-          ------------------------- */}
-          {showUserManagement && (
+          {/* USER MANAGEMENT SECTION */}
+          {userManagementItems.length > 0 && (
             <div className="mt-2">
               <button
                 type="button"
                 onClick={() => setUserMenuOpen((v) => !v)}
                 aria-expanded={userMenuOpen}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm
-                ${isUserChildActive
-                  ? "bg-[#282560]/10 text-[#282560] font-medium"
-                  : "text-gray-700 hover:bg-gray-100"}`}
+                    ${isUserMenuActive
+                      ? "bg-[#282560]/10 text-[#282560] font-medium"
+                      : "text-gray-700 hover:bg-gray-100"}`}
               >
                 <span className="flex items-center gap-3">
-                  <UserCog className="h-5 w-5" />
+                  <Users2 className="h-5 w-5" />
                   <span>User Management</span>
                 </span>
 
@@ -172,14 +162,13 @@ export default function Sidebar({ open, onClose }) {
                 />
               </button>
 
-              {/* User Management Submenu */}
               <div
                 className={`overflow-hidden transition-[max-height] duration-200 ${
                   userMenuOpen ? "max-h-40" : "max-h-0"
                 }`}
               >
                 <ul className="mt-1 pl-9 pr-2 space-y-1">
-                  {userManagementChildren.map((child) => {
+                  {userManagementItems.map((child) => {
                     const Icon = child.icon;
                     return (
                       <li key={child.to}>
@@ -187,9 +176,10 @@ export default function Sidebar({ open, onClose }) {
                           to={child.to}
                           className={({ isActive }) =>
                             `flex items-center gap-2 px-3 py-2 rounded-md text-sm
-                            ${isActive
+                             ${isActive
                               ? "bg-[#282560]/10 text-[#282560] font-medium"
-                              : "text-gray-700 hover:bg-gray-100"}`}
+                              : "text-gray-700 hover:bg-gray-100"}`
+                          }
                         >
                           <Icon className="h-4 w-4" />
                           <span>{child.label}</span>
@@ -202,19 +192,17 @@ export default function Sidebar({ open, onClose }) {
             </div>
           )}
 
-          {/* -------------------------
-              CONFIG SECTION
-          ------------------------- */}
-          {showConfig && (
+          {/* CONFIGURATION SECTION */}
+          {configurationChildren.length > 0 && (
             <div className="mt-2">
               <button
                 type="button"
                 onClick={() => setConfigOpen((v) => !v)}
                 aria-expanded={configOpen}
                 className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm
-                ${isConfigChildActive
-                  ? "bg-[#282560]/10 text-[#282560] font-medium"
-                  : "text-gray-700 hover:bg-gray-100"}`}
+                  ${isConfigChildActive
+                    ? "bg-[#282560]/10 text-[#282560] font-medium"
+                    : "text-gray-700 hover:bg-gray-100"}`}
               >
                 <span className="flex items-center gap-3">
                   <Settings className="h-5 w-5" />
@@ -226,7 +214,6 @@ export default function Sidebar({ open, onClose }) {
                 />
               </button>
 
-              {/* Config submenu */}
               <div
                 className={`overflow-hidden transition-[max-height] duration-200 ${
                   configOpen ? "max-h-40" : "max-h-0"
@@ -241,9 +228,10 @@ export default function Sidebar({ open, onClose }) {
                           to={child.to}
                           className={({ isActive }) =>
                             `flex items-center gap-2 px-3 py-2 rounded-md text-sm
-                            ${isActive
+                             ${isActive
                               ? "bg-[#282560]/10 text-[#282560] font-medium"
-                              : "text-gray-700 hover:bg-gray-100"}`}
+                              : "text-gray-700 hover:bg-gray-100"}`
+                          }
                         >
                           <Icon className="h-4 w-4" />
                           <span>{child.label}</span>
@@ -255,7 +243,6 @@ export default function Sidebar({ open, onClose }) {
               </div>
             </div>
           )}
-
         </nav>
       </aside>
     </>
