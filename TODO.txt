@@ -1,0 +1,5 @@
+1. logout with backend
+2. menu dynamic
+3. theme change
+4. profile on header (log out section)
+5. 
