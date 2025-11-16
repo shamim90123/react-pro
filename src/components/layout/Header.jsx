@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { Menu, Lock, LogOut } from "lucide-react";
 
 // --------------------- Helper Functions ---------------------
 function getInitials(nameLike) {
@@ -118,14 +119,7 @@ export default function Header({ onToggleSidebar }) {
           className="md:hidden p-2 rounded-lg hover:bg-gray-100"
           aria-label="Toggle sidebar"
         >
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-            <path
-              d="M4 6h16M4 12h16M4 18h16"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </svg>
+          <Menu className="h-6 w-6" />
         </button>
 
         {/* Logo */}
@@ -246,29 +240,31 @@ export default function Header({ onToggleSidebar }) {
                 {/* Menu Items */}
                 <div className="py-1">
                   <Link
-                    to="/change-password"
-                    role="menuitem"
-                    ref={firstItemRef}
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                    tabIndex={0}
-                  >
-                    <span aria-hidden>🔒</span>
-                    Change Password
-                  </Link>
+                      to="/change-password"
+                      role="menuitem"
+                      ref={firstItemRef}
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                      tabIndex={0}
+                    >
+                      <Lock className="h-4 w-4 text-gray-600" />
+                      Change Password
+                    </Link>
+
 
                   <Link
-                    role="menuitem"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      handleLogout();
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
-                    tabIndex={1}
-                  >
-                    <span aria-hidden>🚪</span>
-                    Logout
-                  </Link>
+                      role="menuitem"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-gray-800 hover:bg-gray-50 focus:bg-gray-50 focus:outline-none"
+                      tabIndex={1}
+                    >
+                      <LogOut className="h-4 w-4 text-gray-600" />
+                      Logout
+                    </Link>
+
                 </div>
 
               </div>
