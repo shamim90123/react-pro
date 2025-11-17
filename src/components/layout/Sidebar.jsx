@@ -43,6 +43,7 @@ const USER_MANAGEMENT_ITEMS = [
 ------------------------------ */
 
 const CONFIG_CHILDREN = [
+  { to: "/menus", label: "Menu", icon: Package, need: "products.view" },
   { to: "/products", label: "Products", icon: Package, need: "products.view" },
   { to: "/sale-stages", label: "Sale Stages", icon: BarChart3, need: "stages.view" },
 ];

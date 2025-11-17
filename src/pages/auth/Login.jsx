@@ -10,7 +10,7 @@ export default function Login() {
   const location = useLocation();
   const { login } = useAuth();
 
-  const [form, setForm] = useState({ email: "admin@gmail.com", password: "12345678", remember: false });
+  const [form, setForm] = useState({ email: "admin@gmail.com", password: "12345678", remember: true });
   const [showPwd, setShowPwd] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 

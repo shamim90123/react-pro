@@ -21,6 +21,10 @@ import ProductFormPage from "@/pages/products/form.jsx";
 import SaleStageList from "@/pages/sale_stages/list.jsx";
 import SaleStageFormPage from "@/pages/sale_stages/form.jsx";
 
+// Lead Stages
+import MenuList from "@/pages/menu/list.jsx";
+import MenuFormPage from "@/pages/menu/form.jsx";
+
 import RoleEdit from "@/pages/roles/RoleEdit";
 import RoleList from "@/pages/roles/RoleList";
 import RoleCreate from "@/pages/roles/RoleCreate";
@@ -43,9 +47,6 @@ export const appRoutes = [
       { path: "/login", element: <Login /> },
       { path: "/forgot-password", element: <ForgotPassword /> },
       { path: "/reset-password", element: <ResetPassword /> },
-      // { path: "/change-password", element: <ChangePassword /> },
-      
-      
     ],
   },
   {
@@ -78,10 +79,14 @@ export const appRoutes = [
           { path: "/sale-stages/new", element: <SaleStageFormPage /> },
           { path: "/sale-stages/:id/edit", element: <SaleStageFormPage /> },
 
+          // menu
+          { path: "/menus", element: <MenuList /> },
+          { path: "/menus/new", element: <MenuFormPage /> },
+          { path: "/menus/:id/edit", element: <MenuFormPage /> },
+
           { path: "/permissions", element: <PermissionList /> },
           { path: "/permissions/new", element: <PermissionForm /> },
           { path: "/permissions/:id/edit", element: <PermissionForm /> },
-
           
         ],
       },
